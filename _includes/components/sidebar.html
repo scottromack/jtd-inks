@@ -12,7 +12,7 @@
 <header class="side-bar raised flex min-h-full flex-col">
   <div class="site-header flex items-center justify-between gap-4 px-6 py-8">
     <a href="{{ '/' | relative_url }}" class="site-title text-xl opacity-80 transition hover:opacity-100">{% include title.html %}</a>
-    <button id="menu-button" class="site-button rounded-lg p-2 opacity-60 transition hover:bg-gray-500/20 hover:opacity-100" aria-label="Menu" aria-expanded="false">
+    <button id="menu-button" class="site-button rounded-lg p-2 opacity-60 transition hover:bg-neutral-500/20 hover:opacity-100" aria-label="Menu" aria-expanded="false">
       <svg viewBox="0 0 24 24" class="icon size-5" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
     </button>
   </div>
@@ -23,14 +23,8 @@
     note: nav_footer_custom and/or this "site footer" appear in components/footer.html for the mobile view.
   {%- endcomment -%}
 
-  <div class="site-footer mt-auto border-t px-4 py-3 text-xs opacity-60">
-  {% capture nav_footer_custom %}
-    {%- include nav_footer_custom.html -%}
-  {% endcapture %}
-  {% if nav_footer_custom != "" %}
-    {{ nav_footer_custom }}
-  {% else %}
-    This site uses <a href="https://github.com/just-the-docs/just-the-docs" class="underline underline-offset-2">Just the Docs</a>, a documentation theme for Jekyll.
-  {% endif %}
-  </div>
+  {%- capture nav_footer_custom -%}{%- include nav_footer_custom.html -%}{%- endcapture -%}
+  {%- if nav_footer_custom != "" %}
+  <div class="site-footer mt-auto border-t px-4 py-3 text-xs opacity-60">{{ nav_footer_custom }}</div>
+  {%- endif %}
 </header>

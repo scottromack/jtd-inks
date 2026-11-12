@@ -1,6 +1,8 @@
 {% capture footer_custom %}
   {%- include footer_custom.html -%}
 {% endcapture %}
+{%- assign footer_custom_text = footer_custom | strip_html | strip -%}
+{%- if site.back_to_top or footer_custom_text != "" or site.gh_edit_link or site.last_edit_timestamp and page.last_modified_date -%}
 <hr>
 <footer>
   {% if site.back_to_top %}
@@ -34,14 +36,9 @@
     note: nav_footer_custom and/or this "site footer" appear in components/sidebar.html for the desktop view.
   {%- endcomment -%}
 
-  <div class="mobile-site-footer mt-4 text-xs opacity-60">
-    {% capture nav_footer_custom %}
-      {%- include nav_footer_custom.html -%}
-    {% endcapture %}
-    {% if nav_footer_custom != "" %}
-      {{ nav_footer_custom }}
-    {% else %}
-      This site uses <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>, a documentation theme for Jekyll.
-    {% endif %}
-  </div>
+  {%- capture nav_footer_custom -%}{%- include nav_footer_custom.html -%}{%- endcapture -%}
+  {%- if nav_footer_custom != "" %}
+  <div class="mobile-site-footer mt-4 text-xs opacity-60">{{ nav_footer_custom }}</div>
+  {%- endif %}
 </footer>
+{%- endif -%}

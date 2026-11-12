@@ -4,9 +4,9 @@ layout: table_wrappers
 
 <!DOCTYPE html>
 
-<html lang="{{ site.lang | default: 'en-US' }}">
+<html lang="{{ site.lang | default: 'en-US' }}" class="scroll-smooth motion-reduce:scroll-auto">
 {% include head.html %}
-<body class="bg-white text-gray-900 antialiased">
+<body class="bg-white text-neutral-800/90 antialiased">
   <a class="skip-to-main sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:ring-2 focus:ring-brand-600" href="#main-content">Skip to main content</a>
   {% include icons/icons.html %}
   {%- comment -%}
@@ -36,7 +36,7 @@ layout: table_wrappers
               {{ content }}
             {% endif %}
 
-            {% if page.has_toc != false %}
+            {% if site.children_nav == true and page.has_toc != false %}
               {% include components/children_nav.html %}
             {% endif %}
           </main>
@@ -48,6 +48,8 @@ layout: table_wrappers
       {% endif %}
     </div>
   </div>
+
+  <a href="#top" aria-label="Back to top" class="to-top raised reveal-on-scroll fixed! right-8 bottom-8 z-40 grid size-12 place-items-center rounded-full text-lg no-underline shadow-lg transition hover:bg-neutral-500/20 [corner-shape:squircle]">↑</a>
 
   {% if site.mermaid %}
     {% include components/mermaid.html %}

@@ -29,7 +29,7 @@
 
     {%- include components/nav/children.html node=node ancestors=include.ancestors all=include.all -%}
     {%- capture nav_link -%}
-      <a href="{{ node.url | relative_url }}" class="nav-list-link flex-1 rounded-lg border border-transparent p-2 transition hover:bg-gray-500/20 aria-[current=page]:raised"{% if page.url == node.url %} aria-current="page"{% endif %}>{{ node.title }}</a>
+      <a href="{{ node.url | relative_url }}" class="nav-list-link flex-1 rounded-lg border border-transparent p-2 transition hover:bg-neutral-500/20 aria-[current=page]:raised"{% if page.url == node.url %} aria-current="page"{% endif %}>{{ node.title }}</a>
     {%- endcapture -%}
 
     <li class="nav-list-item">

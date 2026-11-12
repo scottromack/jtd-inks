@@ -21,6 +21,7 @@
     "css": "tailwindcss -i _tailwind/app.css -o assets/css/app.css",
     "css:watch": "tailwindcss -i _tailwind/app.css -o assets/css/app.css --watch",
     "serve": "bundle exec jekyll serve",
+    "predev": "lsof -ti :4000 | xargs kill 2>/dev/null || true",
     "dev": "npm-run-all --parallel css:watch serve",
     "grace-words": "node tools/grace-words.mjs ../grace-commons/GRACE-lang.md"
   },

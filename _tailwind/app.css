@@ -5,7 +5,6 @@
 @import "@mus/inks";
 @plugin "@tailwindcss/typography";
 
-/* Alliance, Scott's licensed face (full license, web use included; 2026-11-12). */
 @font-face {
   font-family: "Alliance";
   src: url("../fonts/alliance.woff2") format("woff2");
@@ -25,14 +24,14 @@
 }
 
 /* raised: the one custom utility (Scott, 2026-11-12: "the key to the tables and nav
-   looking 'glass'"), from Compos' .raised on the new INKs. A hair of gray-100 (INKs
+   looking 'glass'"), from Compos' .raised on the new INKs. A hair of neutral-100 (INKs
    flips it), 2% in light and 6% in dark, behind a blur, a low-alpha mid-gray border,
    and a faint wash toward white (black in dark) at the bottom. */
 @utility raised {
-  @apply relative border border-gray-500/20 shadow-xs backdrop-blur-lg;
+  @apply relative border border-neutral-500/20 shadow-xs backdrop-blur-md;
   background: light-dark(
-    color-mix(in oklab, var(--color-gray-100) 2%, transparent),
-    color-mix(in oklab, var(--color-gray-100) 6%, transparent)
+    color-mix(in oklab, var(--color-brand-100) 2%, transparent),
+    color-mix(in oklab, var(--color-brand-100) 2%, transparent)
   );
   &::after {
     content: "";
@@ -51,12 +50,20 @@
 @source "../assets/js/just-the-docs.js";
 @source "../assets/js/grace-highlight.js";
 
+/* One focus color for the whole site: brand, as the style rules keep it for the one action
+   and focus. Replaces the browser's default blue on every focusable thing; form controls
+   take it as their accent too. */
+@layer base {
+  :root { accent-color: var(--color-brand-600); }
+  :focus-visible { outline: 2px solid var(--color-brand-600); outline-offset: 2px; }
+}
+
 /* One border color for the whole site: mid gray at low alpha, so it reads on light and
-   dark alike without flipping (gray-500 is INKs' fixed step). Tailwind v4's own upgrade
+   dark alike without flipping (neutral-500 is INKs' fixed step). Tailwind v4's own upgrade
    note for a default border color; not a class. */
 @layer base {
   *, ::after, ::before, ::backdrop, ::file-selector-button {
-    border-color: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+    border-color: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
   }
 }
 
@@ -69,20 +76,39 @@
   --tw-prose-body: currentColor;
   --tw-prose-headings: currentColor;
   --tw-prose-lead: color-mix(in oklab, currentColor 75%, transparent);
-  --tw-prose-links: var(--color-brand-700);
+  --tw-prose-links: var(--color-brand-600);
   --tw-prose-bold: currentColor;
   --tw-prose-counters: color-mix(in oklab, currentColor 50%, transparent);
   --tw-prose-bullets: color-mix(in oklab, currentColor 40%, transparent);
-  --tw-prose-hr: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-hr: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
   --tw-prose-quotes: currentColor;
-  --tw-prose-quote-borders: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-quote-borders: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
   --tw-prose-captions: color-mix(in oklab, currentColor 60%, transparent);
   --tw-prose-kbd: currentColor;
-  --tw-prose-kbd-shadows: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-kbd-shadows: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
   --tw-prose-code: currentColor;
   --tw-prose-pre-code: currentColor;
-  --tw-prose-pre-bg: color-mix(in oklab, var(--color-gray-500) 8%, transparent);
-  --tw-prose-th-borders: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
-  --tw-prose-td-borders: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-pre-bg: color-mix(in oklab, var(--color-neutral-500) 8%, transparent);
+  --tw-prose-th-borders: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
+  --tw-prose-td-borders: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
 }
 
+.prose-a\:decoration-1 :is(:where(a):not(:where([class~="not-prose"], [class~="not-prose"] *))) {
+  text-decoration-thickness: .1px;
+}
+
+/* reveal-on-scroll: the back-to-top button's one behavior, from grace-commons'
+   footer_custom.html (Scott: "our existing back to top button ... is great"). Shown once the
+   page has scrolled 200-400px, by a scroll-driven animation; browsers without one show it
+   always. The second custom utility, with `raised`. */
+@keyframes reveal-on-scroll {
+  from { opacity: 0; visibility: hidden; }
+  to { opacity: 1; visibility: visible; }
+}
+@utility reveal-on-scroll {
+  @supports (animation-timeline: scroll()) {
+    animation: reveal-on-scroll ease-out both;
+    animation-timeline: scroll(root);
+    animation-range: 200px 400px;
+  }
+}

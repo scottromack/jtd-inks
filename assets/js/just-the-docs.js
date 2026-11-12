@@ -563,7 +563,7 @@ jtd.onReady(function(){
     var copyButton = document.createElement('button');
     var timeout = null;
     copyButton.type = 'button';
-    copyButton.className = 'absolute top-2 right-2 rounded-lg p-1.5 opacity-40 transition hover:bg-gray-500/20 hover:opacity-100';
+    copyButton.className = 'absolute top-2 right-2 rounded-lg p-1.5 opacity-40 transition hover:bg-neutral-500/20 hover:opacity-100';
     codeBlock.classList.add('relative');
     copyButton.ariaLabel = 'Copy code to clipboard';
     copyButton.innerHTML = svgCopy;

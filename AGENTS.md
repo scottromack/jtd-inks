@@ -9,7 +9,7 @@ keep what works, swap what doesn't. Read this before touching a class.
 
 1. Straight Tailwind classes only. No custom classes, no Sass, no `@apply`.
    One exception, by Scott's word: the `raised` utility in `_tailwind/app.css`
-   (glass surfaces: tables, the active nav link, inputs).
+   (glass surfaces), and `reveal-on-scroll` (the back-to-top button, from grace-commons).
 2. One breakpoint, `md:`, and only in the global grid of the main layout.
    Components carry no breakpoints; the shell rearranges, they don't.
    Components set no width either: they fill their grid area, as blocks
@@ -24,12 +24,13 @@ keep what works, swap what doesn't. Read this before touching a class.
 
 ## Style (Scott's, read from ~/Develop/Compos, 2026-11-12)
 
+- Grays are `neutral`, never `gray` (Scott, 2026-11-12: Tailwind's gray leans blue).
 - Secondary text is `opacity-50`/`opacity-60` on inherited color, not a gray step.
 - Borders and hovers are mid gray at low alpha, which read in light and dark alike:
-  plain `border` (base color is gray-500 at 25%), `hover:bg-gray-500/20`; a glass
+  plain `border` (base color is neutral-500 at 25%), `hover:bg-neutral-500/20`; a glass
   surface is the `raised` utility (Compos' `.raised`).
 - Sidebar 14rem; nav `flex flex-col gap-0.5 px-2`; a link is
-  `flex items-center gap-2 rounded-lg p-2 text-sm hover:bg-gray-500/20`.
+  `flex items-center gap-2 rounded-lg p-2 text-sm hover:bg-neutral-500/20`.
 - Tables: a card `rounded-lg border overflow-hidden`; head row
   `border-b text-xs uppercase tracking-wide opacity-50`, cells `px-4 py-3 text-left font-medium`;
   body rows `border-b`, cells `px-4 py-3`.
@@ -51,6 +52,12 @@ keep what works, swap what doesn't. Read this before touching a class.
 - Font: Alliance (licensed, web use included), `assets/fonts/`, wired as `--font-sans`.
 - Brand green for the one action and focus: `bg-brand-600`, `border-brand-600`.
 
+## Off in this site's config (the templates keep them)
+
+Back-to-top footer link, footer license line, edit-on-GitHub link, the sidebar credit line
+(`nav_footer_custom.html` empty), and the automatic child-page list (`children_nav: true` turns
+it on). Scott, 2026-11-12: the footer stuff "needs to go away".
+
 ## Plan
 
 Done 2026-11-12: Tailwind + INKs build (`npm run dev`); Just the Docs' Sass, its three
@@ -70,7 +77,13 @@ Next:
 2. Check every page type against the fixtures: real Grace pages (The Corpus > Atomic
    Concepts > Gift Card, Cart; Conceptual Compositions > Shared Cart; The Method >
    Execution Contract; Glossary), copied from grace-commons, which stays their home.
-3. Wire the fork into grace-commons (after the IA sweep decides the front doors).
+3. Later, not now (Scott, 2026-11-12: "Leave it"): search as a native `popover` with CSS anchor
+   positioning, `::backdrop` as the scrim, once Firefox ships anchor positioning.
+4. A deploy workflow for a live demo (Just the Docs' CI, gem publishing, deploy, funding,
+   issue templates and dependabot were deleted 2026-11-12; they built a different stack).
+   Blocked until INKs' new branch is on GitHub: CI cannot see `file:../inks`, so the
+   dependency must point at the pushed INKs first.
+5. Wire the fork into grace-commons (after the IA sweep decides the front doors).
 
 Keep: the nav tree includes, lunr search and its index, breadcrumbs, the
 child-page TOC, heading anchors, the copy-code button, Mermaid, callouts,
