@@ -6,38 +6,47 @@ layout: table_wrappers
 
 <html lang="{{ site.lang | default: 'en-US' }}">
 {% include head.html %}
-<body>
-  <a class="skip-to-main" href="#main-content">Skip to main content</a>
+<body class="bg-white text-gray-900 antialiased">
+  <a class="skip-to-main sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:ring-2 focus:ring-brand-600" href="#main-content">Skip to main content</a>
   {% include icons/icons.html %}
-  {% if page.nav_enabled == true %}
-    {% include components/sidebar.html %}
-  {% elsif layout.nav_enabled == true and page.nav_enabled == nil %}
-    {% include components/sidebar.html %}
-  {% elsif site.nav_enabled != false and layout.nav_enabled == nil and page.nav_enabled == nil %}
-    {% include components/sidebar.html %}
-  {% endif %}
-  <div class="main" id="top">
-    {% include components/header.html %}
-    <div class="main-content-wrap">
-      {% include components/breadcrumbs.html %}
-      <div id="main-content" class="main-content">
-        <main>
-          {% if site.heading_anchors != false %}
-            {% include vendor/anchor_headings.html html=content beforeHeading="true" anchorBody="<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><use xlink:href=\"#svg-link\"></use></svg>" anchorClass="anchor-heading" anchorAttrs="aria-labelledby=\"%html_id%\"" %}
-          {% else %}
-            {{ content }}
-          {% endif %}
-
-          {% if page.has_toc != false %}
-            {% include components/children_nav.html %}
-          {% endif %}
-        </main>
-        {% include components/footer.html %}
-      </div>
-    </div>
-    {% if site.search_enabled != false %}
-      {% include components/search_footer.html %}
+  {%- comment -%}
+    The shell: one grid, and the only place a breakpoint lives (AGENTS.md rule 2).
+    Below md the sidebar stacks on top and its nav folds behind the menu button;
+    from md it is a sticky column. The grid's divide draws the one seam.
+  {%- endcomment -%}
+  <div class="grid min-h-dvh divide-y md:grid-cols-[14rem_minmax(0,1fr)] md:divide-x md:divide-y-0
+              [&_#site-nav:not(.nav-open)]:hidden md:[&_#site-nav]:block md:[&_#menu-button]:hidden
+              [&_.site-footer]:hidden md:[&_.site-footer]:block md:[&_.mobile-site-footer]:hidden">
+    {% if page.nav_enabled == true %}
+      <div class="md:sticky md:top-0 md:h-dvh md:overflow-y-auto">{% include components/sidebar.html %}</div>
+    {% elsif layout.nav_enabled == true and page.nav_enabled == nil %}
+      <div class="md:sticky md:top-0 md:h-dvh md:overflow-y-auto">{% include components/sidebar.html %}</div>
+    {% elsif site.nav_enabled != false and layout.nav_enabled == nil and page.nav_enabled == nil %}
+      <div class="md:sticky md:top-0 md:h-dvh md:overflow-y-auto">{% include components/sidebar.html %}</div>
     {% endif %}
+    <div class="main flex min-w-0 flex-col" id="top">
+      {% include components/header.html %}
+      <div class="main-content-wrap flex flex-1 flex-col px-6 py-8 md:px-12 md:py-10">
+        {% include components/breadcrumbs.html %}
+        <div id="main-content" class="main-content flex flex-1 flex-col">
+          <main class="prose max-w-none flex-1 prose-code:before:content-none prose-code:after:content-none prose-a:font-normal prose-a:decoration-1 prose-a:underline-offset-4 prose-table:my-0 prose-thead:border-b prose-th:px-4 prose-th:py-3 prose-th:text-xs prose-th:font-medium prose-th:uppercase prose-th:tracking-wide prose-th:opacity-50 prose-td:px-4 prose-td:py-3 [&_details]:my-4 [&_summary]:cursor-pointer [&_summary]:select-none [&_summary]:text-sm [&_summary]:font-medium [&_summary]:opacity-60 [&_summary:hover]:opacity-100 [&_details[open]>summary]:mb-2">
+            {% if site.heading_anchors != false %}
+              {% include vendor/anchor_headings.html html=content beforeHeading="true" anchorBody="<svg viewBox=\"0 0 16 16\" class=\"size-4\" aria-hidden=\"true\"><use xlink:href=\"#svg-link\"></use></svg>" anchorClass="anchor-heading mr-2 inline-flex align-middle opacity-25 transition hover:opacity-100" anchorAttrs="aria-labelledby=\"%html_id%\"" %}
+            {% else %}
+              {{ content }}
+            {% endif %}
+
+            {% if page.has_toc != false %}
+              {% include components/children_nav.html %}
+            {% endif %}
+          </main>
+          {% include components/footer.html %}
+        </div>
+      </div>
+      {% if site.search_enabled != false %}
+        {% include components/search_footer.html %}
+      {% endif %}
+    </div>
   </div>
 
   {% if site.mermaid %}

@@ -9,28 +9,28 @@
   Should not be cached, because nav_footer_custom.html might depend on page.
 {%- endcomment -%}
 
-<header class="side-bar">
-  <div class="site-header">
-    <a href="{{ '/' | relative_url }}" class="site-title lh-tight">{% include title.html %}</a>
-    <button id="menu-button" class="site-button btn-reset" aria-label="Menu" aria-expanded="false">
-      <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
+<header class="side-bar flex min-h-full flex-col">
+  <div class="site-header flex items-center justify-between gap-4 px-6 py-8">
+    <a href="{{ '/' | relative_url }}" class="site-title text-xl opacity-80 transition hover:opacity-100">{% include title.html %}</a>
+    <button id="menu-button" class="site-button rounded-lg p-2 opacity-60 transition hover:bg-gray-500/20 hover:opacity-100" aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" class="icon size-5" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
     </button>
   </div>
 
-  {% include_cached components/site_nav.html %}
+  {% include components/site_nav.html %}
 
   {%- comment -%}
     note: nav_footer_custom and/or this "site footer" appear in components/footer.html for the mobile view.
   {%- endcomment -%}
 
-  <div class="d-md-block d-none site-footer">
+  <div class="site-footer mt-auto border-t px-4 py-3 text-xs opacity-60">
   {% capture nav_footer_custom %}
     {%- include nav_footer_custom.html -%}
   {% endcapture %}
   {% if nav_footer_custom != "" %}
     {{ nav_footer_custom }}
   {% else %}
-    This site uses <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>, a documentation theme for Jekyll.
+    This site uses <a href="https://github.com/just-the-docs/just-the-docs" class="underline underline-offset-2">Just the Docs</a>, a documentation theme for Jekyll.
   {% endif %}
   </div>
 </header>

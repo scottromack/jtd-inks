@@ -40,7 +40,6 @@ function initNav() {
   const mainHeader = document.getElementById('main-header');
   const menuButton = document.getElementById('menu-button');
 
-  disableHeadStyleSheets();
 
   jtd.addEvent(menuButton, 'click', function(e){
     e.preventDefault();
@@ -67,26 +66,6 @@ function initNav() {
     searchInput.focus();
   });
   {%- endif %}
-}
-
-// The <head> element is assumed to include the following stylesheets:
-// - a <link> to /assets/css/just-the-docs-head-nav.css,
-//             with id 'jtd-head-nav-stylesheet'
-// - a <style> containing the result of _includes/css/activation.scss.liquid.
-// To avoid relying on the order of stylesheets (which can change with HTML
-// compression, user-added JavaScript, and other side effects), stylesheets
-// are only interacted with via ID
-
-function disableHeadStyleSheets() {
-  const headNav = document.getElementById('jtd-head-nav-stylesheet');
-  if (headNav) {
-    headNav.disabled = true;
-  }
-
-  const activation = document.getElementById('jtd-nav-activation');
-  if (activation) {
-    activation.disabled = true;
-  }
 }
 
 {%- if site.search_enabled != false %}
@@ -258,7 +237,7 @@ function searchLoaded(index, docs) {
       // note: the SVG svg-doc is only loaded as a Jekyll include if site.search_enabled is true; see _includes/icons/icons.html
       var resultDoc = document.createElement('div');
       resultDoc.classList.add('search-result-doc');
-      resultDoc.innerHTML = '<svg viewBox="0 0 24 24" class="search-result-icon" aria-hidden="true"><use xlink:href="#svg-doc"></use></svg>';
+      resultDoc.innerHTML = '<svg viewBox="0 0 24 24" class="search-result-icon size-4" aria-hidden="true"><use xlink:href="#svg-doc"></use></svg>';
       resultTitle.appendChild(resultDoc);
 
       var resultDocTitle = document.createElement('div');
@@ -503,18 +482,6 @@ function searchLoaded(index, docs) {
 }
 {%- endif %}
 
-// Switch theme
-
-jtd.getTheme = function() {
-  var cssFileHref = document.querySelector('[rel="stylesheet"]').getAttribute('href');
-  return cssFileHref.substring(cssFileHref.lastIndexOf('-') + 1, cssFileHref.length - 4);
-}
-
-jtd.setTheme = function(theme) {
-  var cssFile = document.querySelector('[rel="stylesheet"]');
-  cssFile.setAttribute('href', '{{ "assets/css/just-the-docs-" | relative_url }}' + theme + '.css');
-}
-
 // Note: pathname can have a trailing slash on a local jekyll server
 // and not have the slash on GitHub Pages
 
@@ -553,31 +520,11 @@ function scrollNav() {
   }
 }
 
-// Find the nav-list-link that refers to the current page
-// then make it and all enclosing nav-list-item elements active.
-
-function activateNav() {
-  var target = navLink();
-  if (target) {
-    target.classList.toggle('active', true);
-  }
-  while (target) {
-    while (target && !(target.classList && target.classList.contains('nav-list-item'))) {
-      target = target.parentNode;
-    }
-    if (target) {
-      target.classList.toggle('active', true);
-      target = target.parentNode;
-    }
-  }
-}
-
 // Document ready
 
 jtd.onReady(function(){
   if (document.getElementById('site-nav')) {
     initNav();
-    activateNav();
     scrollNav();
   }
   {%- if site.search_enabled != false %}
@@ -609,13 +556,15 @@ jtd.onReady(function(){
   var codeBlocks = document.querySelectorAll('div.highlighter-rouge, div.listingblock > div.content, figure.highlight');
 
   // note: the SVG svg-copied and svg-copy is only loaded as a Jekyll include if site.enable_copy_code_button is true; see _includes/icons/icons.html
-  var svgCopied =  '<svg viewBox="0 0 24 24" class="copy-icon"><use xlink:href="#svg-copied"></use></svg>';
-  var svgCopy =  '<svg viewBox="0 0 24 24" class="copy-icon"><use xlink:href="#svg-copy"></use></svg>';
+  var svgCopied =  '<svg viewBox="0 0 24 24" class="copy-icon size-4"><use xlink:href="#svg-copied"></use></svg>';
+  var svgCopy =  '<svg viewBox="0 0 24 24" class="copy-icon size-4"><use xlink:href="#svg-copy"></use></svg>';
 
   codeBlocks.forEach(codeBlock => {
     var copyButton = document.createElement('button');
     var timeout = null;
     copyButton.type = 'button';
+    copyButton.className = 'absolute top-2 right-2 rounded-lg p-1.5 opacity-40 transition hover:bg-gray-500/20 hover:opacity-100';
+    codeBlock.classList.add('relative');
     copyButton.ariaLabel = 'Copy code to clipboard';
     copyButton.innerHTML = svgCopy;
     codeBlock.append(copyButton);

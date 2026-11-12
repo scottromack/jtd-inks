@@ -31,3 +31,9 @@ node_modules
 
 # Used for automated test results and metadata.
 tmp/
+
+# Built by `npm run css` from _tailwind/app.css (Tailwind + INKs).
+assets/css/app.css
+
+# Editor state
+.vscode/

@@ -1,0 +1,87 @@
+/* Tailwind + INKs for jtd-inks. `npm run css` builds this into assets/css/app.css.
+   Rules: AGENTS.md. Style light mode only; INKs makes dark and the page follows the system.
+   Just the Docs' Sass is gone: nothing else styles the site. */
+@import "tailwindcss" source(none);
+@import "@mus/inks";
+@plugin "@tailwindcss/typography";
+
+/* Alliance, Scott's licensed face (full license, web use included; 2026-11-12). */
+@font-face {
+  font-family: "Alliance";
+  src: url("../fonts/alliance.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Alliance";
+  src: url("../fonts/alliance-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@theme {
+  --font-sans: "Alliance", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* raised: the one custom utility (Scott, 2026-11-12: "the key to the tables and nav
+   looking 'glass'"), from Compos' .raised on the new INKs. A hair of gray-100 (INKs
+   flips it), 2% in light and 6% in dark, behind a blur, a low-alpha mid-gray border,
+   and a faint wash toward white (black in dark) at the bottom. */
+@utility raised {
+  @apply relative border border-gray-500/20 shadow-xs backdrop-blur-lg;
+  background: light-dark(
+    color-mix(in oklab, var(--color-gray-100) 2%, transparent),
+    color-mix(in oklab, var(--color-gray-100) 6%, transparent)
+  );
+  &::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 rounded-[inherit] bg-linear-to-b from-transparent from-30% to-white/2;
+  }
+}
+
+/* Sources: the theme's templates and the docs pages; never the built site. */
+@source "../_includes";
+@source "../_layouts";
+@source "../docs";
+@source "../index.md";
+@source "../404.html";
+@source "../assets/js/topology.js";
+@source "../assets/js/just-the-docs.js";
+@source "../assets/js/grace-highlight.js";
+
+/* One border color for the whole site: mid gray at low alpha, so it reads on light and
+   dark alike without flipping (gray-500 is INKs' fixed step). Tailwind v4's own upgrade
+   note for a default border color; not a class. */
+@layer base {
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    border-color: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  }
+}
+
+/* prose colors. The typography plugin bakes Tailwind's gray literals into its variables,
+   so INKs cannot flip them (the "sketch" coloring). Re-pointed here at the site's scheme:
+   text inherits the page color (which INKs flips), emphasis drops by opacity, rules and
+   code panels are mid gray at low alpha. Unlayered on purpose: it outranks the plugin's
+   layered .prose without a fight over order. No prose-invert anywhere. */
+.prose {
+  --tw-prose-body: currentColor;
+  --tw-prose-headings: currentColor;
+  --tw-prose-lead: color-mix(in oklab, currentColor 75%, transparent);
+  --tw-prose-links: var(--color-brand-700);
+  --tw-prose-bold: currentColor;
+  --tw-prose-counters: color-mix(in oklab, currentColor 50%, transparent);
+  --tw-prose-bullets: color-mix(in oklab, currentColor 40%, transparent);
+  --tw-prose-hr: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-quotes: currentColor;
+  --tw-prose-quote-borders: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-captions: color-mix(in oklab, currentColor 60%, transparent);
+  --tw-prose-kbd: currentColor;
+  --tw-prose-kbd-shadows: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-code: currentColor;
+  --tw-prose-pre-code: currentColor;
+  --tw-prose-pre-bg: color-mix(in oklab, var(--color-gray-500) 8%, transparent);
+  --tw-prose-th-borders: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+  --tw-prose-td-borders: color-mix(in oklab, var(--color-gray-500) 25%, transparent);
+}
+

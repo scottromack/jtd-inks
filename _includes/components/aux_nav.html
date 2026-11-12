@@ -1,8 +1,8 @@
 <nav aria-label="Auxiliary" class="aux-nav">
-  <ul class="aux-nav-list">
+  <ul class="aux-nav-list flex items-center gap-1">
     {% for link in site.aux_links %}
       <li class="aux-nav-list-item">
-        <a href="{{ link.last }}" class="site-button"
+        <a href="{{ link.last }}" class="site-button rounded-lg px-3 py-1.5 text-sm font-medium opacity-80 transition hover:bg-gray-500/20 hover:opacity-100"
           {% if site.aux_links_new_tab %}
           target="_blank" rel="noopener noreferrer"
           {% endif %}

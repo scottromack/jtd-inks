@@ -8,7 +8,7 @@
     node, nav_children, nav_ancestors.
 {%- endcomment -%}
 
-<ul class="nav-list">
+<ul class="nav-list flex flex-col gap-0.5">
   {%- for node in include.pages -%}
   {%- if include.all == true or node.nav_exclude != true -%}
 
@@ -28,20 +28,27 @@
   {%- else -%}
 
     {%- include components/nav/children.html node=node ancestors=include.ancestors all=include.all -%}
+    {%- capture nav_link -%}
+      <a href="{{ node.url | relative_url }}" class="nav-list-link flex-1 rounded-lg border border-transparent p-2 transition hover:bg-gray-500/20 aria-[current=page]:raised"{% if page.url == node.url %} aria-current="page"{% endif %}>{{ node.title }}</a>
+    {%- endcapture -%}
 
     <li class="nav-list-item">
-      {%- if nav_children.size >= 1 -%}
-      <button class="nav-list-expander btn-reset" aria-label="{{ node.title }} submenu" aria-expanded="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg>
-      </button>
-      {%- endif -%}
-      <a href="{{ node.url | relative_url }}" class="nav-list-link">{{ node.title }}</a>
       {%- if nav_children.size >= 1 -%}
         {%- if node.child_nav_order == 'desc' or node.child_nav_order == 'reversed' -%}
           {%- assign nav_children = nav_children | reverse -%}
         {%- endif -%}
-        {%- assign nav_ancestors = include.ancestors | push: node.title -%}
-        {%- include components/nav/links.html pages=nav_children ancestors=nav_ancestors all=include.all -%}
+        <details class="group"{% if page.url == node.url or page.parent == node.title or page.grand_parent == node.title %} open{% endif %}>
+          <summary class="flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
+            {{ nav_link }}
+            <svg viewBox="0 0 24 24" class="size-4 shrink-0 opacity-40 transition group-open:rotate-90" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg>
+          </summary>
+          {%- assign nav_ancestors = include.ancestors | push: node.title -%}
+          <div class="ml-3 border-l pl-2">
+            {%- include components/nav/links.html pages=nav_children ancestors=nav_ancestors all=include.all -%}
+          </div>
+        </details>
+      {%- else -%}
+        <div class="flex">{{ nav_link }}</div>
       {%- endif -%}
     </li>
 
