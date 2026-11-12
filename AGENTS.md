@@ -48,13 +48,16 @@ keep what works, swap what doesn't. Read this before touching a class.
   it; over a plain page it reads as tint, border and sheen.
 - Texture: `assets/js/topology.js` (+ worker), Compos' flow-field canvas fixed behind everything (Scott 2026-11-12: fixed;
   parallax was tried and was jumpy), brand green, fades after its run; skipped under reduced motion.
-- Content is `prose` (@tailwindcss/typography) on `<main>`, `max-w-none` (the grid decides
-  width). Its colors are re-pointed once in `_tailwind/app.css` (the plugin bakes literal
+- Content is `prose` (@tailwindcss/typography) on `<main>`, at prose's own measure, 65ch
+  (Scott, 2026-11-12: "remove your unset to proses max-width and we will have typography"). Its colors are re-pointed once in `_tailwind/app.css` (the plugin bakes literal
   grays INKs cannot flip); never `prose-invert`.
 - GRACE rule blocks are colored by `assets/js/grace-highlight.js`; its words are generated
   (`npm run grace-words`) from GRACE-lang.md's `Term` lines, never hand-written. Color only,
   as highlighters do (no weight changes): MUST, MAY, MUST NOT orange; other reserved words
   violet; [Actions] sky; labels and WHY/UX/NOTE lines dimmed. Brand stays for the one action.
+- Sizes are rem, always (Scott, 2026-11-12: "always REM"): em compounds where elements nest
+  (code in a table cell). Code is `prose-code:text-[0.75rem]`: the mono face reads larger than
+  Alliance at the same size.
 - Font: Alliance (licensed, web use included), `assets/fonts/`, wired as `--font-sans`.
 - Brand green for the one action and focus: `bg-brand-600`, `border-brand-600`.
 
