@@ -52,7 +52,9 @@
       H = Math.max(el.offsetHeight, MIN);
       canvas.width = W;
       canvas.height = H;
-      dynamicAlpha = Math.min(ALPHA, ALPHA * Math.pow(H / 2500, 1.66));
+      // a page may fix the strength (og.html, a short frame the height rule would fade out)
+      const fixed = parseFloat(el.dataset.topologyAlpha);
+      dynamicAlpha = fixed > 0 ? fixed : Math.min(ALPHA, ALPHA * Math.pow(H / 2500, 1.66));
       // flow field grid dimensions include the overdraw buffer on both sides
       fW = Math.ceil((W + OFF * 2) / CELL);
       fH = Math.ceil((H + OFF * 2) / CELL);
