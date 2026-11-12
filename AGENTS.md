@@ -40,9 +40,9 @@ keep what works, swap what doesn't. Read this before touching a class.
   Not raised: the search input (Scott, 2026-11-12).
 - The header is one full-width row above the nav and the page: logo and title, search,
   links, menu button. The search is the icon in a border until focused, then fills the space
-  between (Scott, 2026-11-12); its `w-10` collapsed width is the one width a component sets,
+  between (Scott, 2026-11-12); its `w-11` collapsed width is the one width a component sets,
   by his word. Below `md` the layout hides the title text when there is a logo, and the links
-  (the menu carries them): `[logo] [search] [menu]`. The logo goes at `assets/images/logo.svg`
+  (the menu carries them): `[logo] [search] [menu]`. The logo goes at `assets/images/icon.svg`
   with `logo:` set in `_config.yml`.
 - Glass is only glass over texture (Scott, 2026-11-12): `raised` needs something behind
   it; over a plain page it reads as tint, border and sheen.
