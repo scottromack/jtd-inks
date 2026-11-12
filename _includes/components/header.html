@@ -1,11 +1,20 @@
-<div id="main-header" class="main-header raised z-50 flex items-center justify-between gap-4 border-x-0! border-t-0! px-6 py-4">
+{%- comment -%}
+  The top bar, full width above the nav and the page: logo and title, search, links, menu button,
+  one row. The search is an icon in a border until focused, then fills the space between
+  (Scott, 2026-11-12). Below md the layout hides the title text when there is a logo, and the
+  links, which the menu carries: [logo] [search] [menu]. Padding is the old sidebar header's, everywhere (Scott, 2026-11-12:
+  "don't fear padding it is the key to design").
+{%- endcomment -%}
+<div id="main-header" class="main-header raised z-50 flex items-center gap-6 border-x-0! border-t-0! px-6 py-8">
+  <a href="{{ '/' | relative_url }}" aria-label="{{ site.title }}" class="site-title flex shrink-0 items-center gap-3 text-xl opacity-80 transition hover:opacity-100">{% include title.html %}</a>
   {% if site.search_enabled != false %}
     {% include components/search_header.html %}
-  {% else %}
-    <div></div>
   {% endif %}
   {% include header_custom.html %}
   {% if site.aux_links %}
     {% include components/aux_nav.html %}
   {% endif %}
+  <button id="menu-button" class="site-button rounded-lg p-2 opacity-60 transition hover:bg-neutral-500/20 hover:opacity-100" aria-label="Menu" aria-expanded="false">
+    <svg viewBox="0 0 24 24" class="icon size-5" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
+  </button>
 </div>

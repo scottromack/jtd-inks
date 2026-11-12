@@ -1,5 +1,1 @@
-{% if site.logo %}
-  <div class="site-logo" role="img" aria-label="{{ site.title }}"></div>
-{% else %}
-  {{ site.title }}
-{% endif %}
+{% if site.logo %}<img src="{{ site.logo | relative_url }}" alt="" class="site-logo size-8 shrink-0">{% endif %}<span class="site-title-text">{{ site.title }}</span>

@@ -38,6 +38,12 @@ keep what works, swap what doesn't. Read this before touching a class.
   Material design."): what must stand out gets `raised`, not a new color, weight or size.
   Raised: the sidebar nav, the header bar, the current nav link, tables, the pattern card.
   Not raised: the search input (Scott, 2026-11-12).
+- The header is one full-width row above the nav and the page: logo and title, search,
+  links, menu button. The search is the icon in a border until focused, then fills the space
+  between (Scott, 2026-11-12); its `w-10` collapsed width is the one width a component sets,
+  by his word. Below `md` the layout hides the title text when there is a logo, and the links
+  (the menu carries them): `[logo] [search] [menu]`. The logo goes at `assets/images/logo.svg`
+  with `logo:` set in `_config.yml`.
 - Glass is only glass over texture (Scott, 2026-11-12): `raised` needs something behind
   it; over a plain page it reads as tint, border and sheen.
 - Texture: `assets/js/topology.js` (+ worker), Compos' flow-field canvas fixed behind everything (Scott 2026-11-12: fixed;

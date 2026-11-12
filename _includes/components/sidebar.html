@@ -9,14 +9,7 @@
   Should not be cached, because nav_footer_custom.html might depend on page.
 {%- endcomment -%}
 
-<header class="side-bar raised flex min-h-full flex-col">
-  <div class="site-header flex items-center justify-between gap-4 px-6 py-8">
-    <a href="{{ '/' | relative_url }}" class="site-title text-xl opacity-80 transition hover:opacity-100">{% include title.html %}</a>
-    <button id="menu-button" class="site-button rounded-lg p-2 opacity-60 transition hover:bg-neutral-500/20 hover:opacity-100" aria-label="Menu" aria-expanded="false">
-      <svg viewBox="0 0 24 24" class="icon size-5" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg>
-    </button>
-  </div>
-
+<header class="side-bar raised flex min-h-full flex-col border-y-0! border-l-0! pt-4">
   {% include components/site_nav.html %}
 
   {%- comment -%}

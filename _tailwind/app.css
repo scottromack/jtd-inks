@@ -107,6 +107,10 @@
 }
 @utility reveal-on-scroll {
   @supports (animation-timeline: scroll()) {
+    /* hidden by default, as on the live site: a page too short to scroll has no active
+       timeline, so the button stays hidden instead of showing at the top */
+    opacity: 0;
+    visibility: hidden;
     animation: reveal-on-scroll ease-out both;
     animation-timeline: scroll(root);
     animation-range: 200px 400px;

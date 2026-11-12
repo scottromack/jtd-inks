@@ -11,12 +11,16 @@ layout: table_wrappers
   {% include icons/icons.html %}
   {%- comment -%}
     The shell: one grid, and the only place a breakpoint lives (AGENTS.md rule 2).
-    Below md the sidebar stacks on top and its nav folds behind the menu button;
-    from md it is a sticky column. The grid's divide draws the one seam.
+    The top bar runs all the way across; under it, the nav on the left and the page on the
+    right. Below md everything stacks and the nav folds behind the menu button (the whole
+    sidebar hides until it opens); from md the nav is a sticky column and search sits inline.
   {%- endcomment -%}
-  <div class="grid min-h-dvh md:grid-cols-[14rem_minmax(0,1fr)]
+  <div class="grid min-h-dvh grid-rows-[auto_auto_1fr] md:grid-cols-[14rem_minmax(0,1fr)] md:grid-rows-[auto_1fr]
               [&_#site-nav:not(.nav-open)]:hidden md:[&_#site-nav:not(.nav-open)]:block md:[&_#menu-button]:hidden
-              [&_.site-footer]:hidden md:[&_.site-footer]:block md:[&_.mobile-site-footer]:hidden">
+              [&_.side-bar:not(:has(.nav-open))]:hidden md:[&_.side-bar:not(:has(.nav-open))]:flex
+              [&_.site-footer]:hidden md:[&_.site-footer]:block md:[&_.mobile-site-footer]:hidden
+              [&_.site-logo~.site-title-text]:hidden md:[&_.site-logo~.site-title-text]:inline [&_.aux-nav]:hidden md:[&_.aux-nav]:grid">
+    <div class="md:col-span-2">{% include components/header.html %}</div>
     {% if page.nav_enabled == true %}
       <div class="md:sticky md:top-0 md:h-dvh md:overflow-y-auto">{% include components/sidebar.html %}</div>
     {% elsif layout.nav_enabled == true and page.nav_enabled == nil %}
@@ -25,7 +29,6 @@ layout: table_wrappers
       <div class="md:sticky md:top-0 md:h-dvh md:overflow-y-auto">{% include components/sidebar.html %}</div>
     {% endif %}
     <div class="main flex min-w-0 flex-col" id="top">
-      {% include components/header.html %}
       <div class="main-content-wrap flex flex-1 flex-col px-6 py-8 md:px-12 md:py-10">
         {% include components/breadcrumbs.html %}
         <div id="main-content" class="main-content flex flex-1 flex-col">
