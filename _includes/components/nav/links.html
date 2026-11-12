@@ -37,7 +37,7 @@
         {%- if node.child_nav_order == 'desc' or node.child_nav_order == 'reversed' -%}
           {%- assign nav_children = nav_children | reverse -%}
         {%- endif -%}
-        <details class="group"{% if page.url == node.url or page.parent == node.title or page.grand_parent == node.title %} open{% endif %}>
+        <details class="group"{% if page.url == node.url or nav_page_ancestors contains node.title %} open{% endif %}>
           <summary class="flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
             {{ nav_link }}
             <svg viewBox="0 0 24 24" class="size-4 shrink-0 opacity-40 transition group-open:rotate-90" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg>

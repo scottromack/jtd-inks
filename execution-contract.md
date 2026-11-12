@@ -1,0 +1,602 @@
+---
+title: Execution Contract
+nav_order: 4
+parent: The Method
+has_toc: true
+toc: true
+---
+
+# Execution Contract
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-delta }
+1. TOC
+{:toc}
+</details>
+
+
+> The deterministic compilation target for Grace Commons atoms and compositions. Every atom is a state machine whose transitions execute via a fixed four-step pipeline over two effect channels and two pure-function boundaries. Nothing else is permitted at runtime.
+
+This document is the contract between the Grace Commons spec layer and any runtime that claims to implement it. It names the three primitives, defines the pipeline, specifies the mapping from atom spec sections to compilation targets, and defines what conformance means. A-stack — the reference implementation in Deno + PostgreSQL + JSX — is the worked instantiation of the contract, not the contract itself. Any runtime that satisfies the contract is a conforming implementation.
+
+---
+
+## Core claim
+
+Every Grace Commons atom compiles into a single explicit state machine. Every transition of that state machine executes through the same four-step pipeline — read current state, evaluate guards, write new state, project output — in that order, with no deviations and no additional steps. No runtime behavior exists outside this pipeline. That is the entire system.
+
+---
+
+## Logic Confinement Principle
+
+The overwhelming majority of async, consistency, timing, and correctness problems in software originate from behavioral logic leaking into the wrong layers. Grace Commons enforces a strict confinement discipline across all conforming implementations. The three primitives and the four-step pipeline below are its concrete expression.
+
+Each rule carries a label, and a specification citing one names it with the contract's name first — `Execution Contract Logic confinement 3` — as a cross-specification citation does (GRACE-lang Hard invariant 28).
+
+**Logic confinement 1: Core is pure.** All atom and composition logic is synchronous, deterministic, and side-effect-free. No IO, no time sources, no randomness, no cryptography inside core logic. If it feels like it should be async, it belongs outside core.
+
+**Logic confinement 2: Single seam rule.** Every mutation crosses exactly one transactional boundary. No business logic is permitted in route handlers, middleware, or adapters. The composition layer is the seam; handlers are plumbing.
+
+**Logic confinement 3: Explicit inputs only.** Time (`clock_t`), identifiers (`id_t`), and cryptographic material are injected as explicit inputs — never generated inside G or T. A transition function that calls `Date.now()` or `crypto.randomUUID()` internally is non-deterministic by construction. The pipeline makes both reads explicit direct effects — the clock at the top of Step 2 (one reading per invocation, shared by G and T), entropy at the top of Step 3, before T runs. A specification that relies on this cites Logic confinement 3 by its label; it does not restate it, and a rule that its transition MUST NOT allocate an id restates it. Nine specifications once tombstoned that rule to this label, each in the Final Critique that cured it.
+
+**Logic confinement 4: Behavior as data transformation.** Prefer explicit construction over hidden work inside transactional functions. The pattern is: construct the value outside the boundary, pass it in, append it. Hidden side effects inside transactions are where correctness guarantees degrade silently.
+
+**Logic confinement 5: Local, checkable invariants.** Every critical rule is asserted in the smallest possible scope. Distributed or implicit assumptions — "appendEvent always ensures X" — are replaced with named invariants in the spec and named assertions in the compiled test suite.
+
+**Logic confinement 6: Async at the edge only.** All asynchronous, network, storage, and external work is confined to adapters. The pipeline itself — Steps 1 through 4 — is synchronous. Async enters core and complexity grows nonlinearly; Grace Commons eliminates the category by construction.
+
+**Logic confinement 7: The clock's guarantees are the deployment's.** A specification reads the clock once per invocation, as Logic confinement 3 says, and trusts nothing about it beyond that reading. What the clock guarantees — that its readings never go backward (monotonicity), that no one has set them (honesty), that they agree across nodes (synchronization), how far two clocks may drift apart (skew), and the timezone a reading is taken in — the deployment owns, for every specification it runs. A specification that relies on one of these cites Logic confinement 7 by its label; it does not restate it.
+
+**Logic confinement 8: A mechanism computes at the seam.** What a deployment's mechanism computes — a digest, a proof, a credential check or a seal check — the mechanism computes at the seam, outside core, and the host injects the result as an explicit input, as it injects the clock reading and the ids (Logic confinement 1 and 3). An atom or a composition decides on what the seam injects, never on the mechanism's internals. A specification that relies on this names the mechanism and what it computes, and cites Logic confinement 8 by its label; it does not restate it. Four specifications once stated it for themselves, each declaring its value as computed at the seam and injected.
+
+**Logic confinement 9: Arithmetic is exact.** Arithmetic in a rule or a declaration is exact, and the deployment computes it without loss — no overflow, no truncation and no rounding but the one a declaration names for its division (GRACE-lang Closed vocabulary 32) — so every conforming build computes one value from the same operands. A specification that relies on this cites Logic confinement 9 by its label; it does not restate it. Cart once stated it for itself, as its Capability requirement 4.
+
+**Logic confinement 10: A string's order is its code point order.** Where a specification orders strings and names no other order — ascending, rising or in byte order — two strings compare by Unicode code point: the first code point at which they differ decides, and where one string is the start of the other, the shorter comes first. It is the order of the strings' UTF-8 bytes, and no locale, collation or other encoding's byte order changes it, so every conforming build orders the same strings one way. A specification that relies on this cites Logic confinement 10 by its label; it does not restate it. Eight specifications once named a byte order over a string for themselves, and Credential's Final Critique 18 found that a byte order names no encoding: a UTF-8 build and a UTF-16 build order U+E000 and U+10000 apart.
+
+**Logic confinement 11: `now` is the clock reading at the call.** Where a specification names `now`, it means the deployment's clock reading at the call: the one reading Logic confinement 3 takes for each call, which the host injects at the seam and the call's guards, its transition and its answer share. Nothing inside the transition reads the clock, and no caller supplies `now`. A specification that relies on this declares `now` by citing Logic confinement 11 (GRACE-lang Closed vocabulary 15); it does not restate it. A specification whose `now` means another reading names that reading for itself. Forty-one specifications once declared `now` for themselves, thirty-three of them saying this section declared it before any rule here did.
+
+**Logic confinement 12: An instant a call leaves blank is `now`.** Where a specification lets a caller supply the instant of the act a call records — when it took place or took effect — or the instant a read evaluates against, and the call leaves it blank, the instant resolves to `now` (Logic confinement 11): wherever a rule of the specification compares, records or answers that instant, the action compares, records or answers `now`, and a rule asking whether the call left the instant blank still reads the call as the caller made it. An instant a call sets for later, such as an expiry, is neither, and what a blank one means is its specification's. A specification that relies on this cites Logic confinement 12 by its label; it does not restate it, and one whose blank instant resolves otherwise states its own rule, which stands in place of this one. Seven specifications once resolved a blank instant to `now` for themselves, each by a rule or by a term for the resolved instant.
+
+**Logic confinement 13: A reference is canonicalized at the seam.** The deployment canonicalizes every reference a call carries, a filter's value on a reference among them, at the seam and in a form the deployment owns, before the transition compares or records it, so every record and every comparison carry one spelling of each reference. A specification declares which of its values are references, as most do by a Term reference. A specification that relies on this cites Logic confinement 13 by its label; it does not restate it. A specification that gives the canonical form another owner states its own rule, which stands in place of this one, as Notification's business caller owns a recipient reference's canonical form. Five specifications once stated it for themselves, each in the Final Critique that found a deployment canonicalizing as it wrote recording what another compared at the seam, and six more wrote it with no place.
+
+**Logic confinement 14: The seam, the transition and the business caller.** The seam is an atom's or a composition's input and output boundary, the one place a call enters and its answer leaves, where the host injects every explicit input (Logic confinement 3 and 8). The transition is the evaluation of one call against the specification's records, inside core (Logic confinement 1). The business caller is the party whose action the call carries, never the source of an injected value. A specification declares each by citing this section or Logic confinement 14 (GRACE-lang Closed vocabulary 15), adding what its host injects at its seam, or by a definition of its own, which stands for its rules; it does not restate this one. Fourteen specifications once dropped a citation of the three words that resolved to nothing, each in the Final Critique that found it (GRACE-lang Closed vocabulary 16), keeping their own definitions.
+
+**Logic confinement 15: A setting with no default is required at start.** Where a specification declares a deployment setting that a rule or a start condition of the specification reads, and states no default for the setting, the setting is a required setting. The deployment MUST set every required setting, and an instance MUST NOT start while a required setting is blank (GRACE-lang Term blank), as an instance whose starter is absent does not start (Scheduled leg 1). A setting the specification states with a default, a cap under Input 2 among them, is never blank, since the default holds wherever the deployment declares none. A specification that states what a blank setting answers or resolves to keeps its own answer in place of this one. It may do so by a declaration admitting the setting blank, by a rule reading the setting where the setting is blank, or by a rule setting the setting from another, as Audit Trail's reconciliation cadence takes the seal cadence's time arm and Gift Card's accepted currencies read blank as the empty set. A specification that relies on this cites Logic confinement 15 by its label and does not restate it. Nine specifications once wrote the cure for themselves, refusing the start on a blank setting or writing the default that sets the setting, each where one build read the condition over the blank setting as failing and refused the start while another started and ran on the blank setting.
+
+**Logic confinement 16: An id the host allocates is supplied to one call.** The host MUST NOT supply one id it allocates to two calls of one instance of a specification (Database 7), whether the two calls are in flight together or one follows the other, and whether either is admitted or refused. An id the host allocates is a value it injects at the seam (Logic confinement 3 and 14) by which a call names or finds a record, an entry or an event the call may write, or from which the transition assigns such an id, as Credential's id material and Gift Card's card code are; the bounds Input 2 sets on an allocated id hold beside this rule. An id the host injects to name what an earlier call wrote, as Actor Suspension's host injects an actor's session tokens, is not allocated, and an id a call carries onward, on a later call's input or into a constituent call its composition action makes, is not supplied again. The rule takes the stronger of the two readings the corpus wrote: an id distinct only from the ids the records already hold may be supplied to two calls in flight, each judged before either commits, or twice by a counter that restarts with the process, so two records share it; a specification's own rule that an id names no record already held stands beside this one, as Credential's and Gift Card's do. A specification that relies on this cites Logic confinement 16 by its label; it does not restate it.
+
+**Logic confinement 17: A setting is read at start and holds until the next start.** Where a specification declares a deployment setting that a rule or a start condition of the specification reads, an instance reads the setting at its start, the first start and every restart (Scheduled leg 1), and every rule and every run of the instance reads that reading until the next start. A change to the setting after a start takes effect at the next start: no call or scheduled run of the running instance reads the changed value, and the start conditions are judged once, at the start, on the reading the instance then holds. A specification that states its own answer for a setting, as a configuration version retained for the audit horizon answers for the interpretation configuration, keeps it. Without this rule one build reads a setting once and another reads it live, so a start condition that held at the start (the audit horizon exceeding the escalation reach) is read again at a later run by one build and not by another. A specification that relies on this cites Logic confinement 17 by its label and does not restate it.
+
+**One home for a shared obligation.** An obligation the deployment owes every specification is written once, here, and each specification cites it — Logic confinement 3's single clock reading was the first such obligation, Logic confinement 7's guarantees the second, Logic confinement 8's computation at the seam the third, Logic confinement 9's exact arithmetic the fourth, Logic confinement 10's string order the fifth, Logic confinement 11's `now` the sixth, Logic confinement 12's blank instant the seventh, Logic confinement 13's canonical form the eighth, Logic confinement 15's required setting the ninth, and Logic confinement 16's single supply of an allocated id the tenth, and Logic confinement 17's setting held from its start the eleventh. Twenty-five specifications once restated the clock's guarantees as sixty capability requirements.
+
+**Current status.** The Beacon reference implementation satisfies Logic confinement 1, 2, 3 and 6 fully — against Logic confinement 3 as it stood when Beacon was built: Beacon reads the clock at Step 3, predating the 2026-07-12 placement revision (clock read at the top of Step 2, shared by G and T — see Pipeline). The injection principle holds in Beacon; the step-placement update rides the same projector build phase as Logic confinement 4 and 5. Logic confinement 4 (explicit construction / `createEvent` before `appendEvent`) and Logic confinement 5 (compiler-emitted invariant assertions) are targeted for the projector build phase — the gap is tracked as methodology debt #7 in the section titled Methodology debts in [`roadmap.md`](./roadmap.md) (the projector / verification-harness deliverable). The principle is stated here as a first-class commitment, not a retrospective description of the demo.
+
+---
+
+## The three primitives
+
+### State Machine (SM)
+
+A state machine is defined as a six-tuple:
+
+```
+SM = (S, E, T, G, I, Q)
+```
+
+- **S** — the finite set of named states. Maps to the atom's State section (state names only).
+- **E** — the set of typed events, one per action. Maps to the atom's action signatures.
+- **T** — the transition function: `S × E × Params × clock_t × id_t → S`. The body of T is a direct effect (a database write); T itself is deterministic given its inputs. `clock_t` and `id_t` are injected — see Pipeline below.
+- **G** — the guard function: `S × E × Params × clock_t → pass | typed_failure(reason)`. G is a pure function. It takes `state_t` (read in Step 1), the event parameters, and the injected clock reading `clock_t` (read as a direct effect at the top of Step 2 — see Pipeline below); it returns either pass or a typed rejection. `clock_t` is what temporal guards evaluate against: a reject-future-timestamp bound or an ordering check against a stored timestamp is a comparison between explicit inputs, never an internal clock read. The typed failure space is exactly the set of rejection reasons named on the refuses lines of the atom's Operations.
+- **I** — the invariant set. Each named invariant in the atom's Invariants section maps to a member of I. Invariants are not assertions run on every read; they are correctness conditions the compiler must prove T preserves. Two classes: *single-state invariants* (hold over the new state after each write — assertable as a post-write pure function) and *sequence-safety invariants* (hold over any history of states — the compiler must prove T never produces a violating state, not assert at runtime).
+- **Q** — the query surface: the named read queries the SM exposes without triggering a transition. Maps to the read actions in the atom's Operations signature block — the actions that answer without writing. Each query is a direct effect (DB read) followed by a pure projection. Q does not modify state.
+
+Action return values — the `id` returned by `assign`, the `ok` returned by `confirm` — are a separate surface **R**: a pure projection function over `state_{t+1}` and the event, emitted as part of Step 4. R is not part of the SM tuple; it is generated from the atom's Outputs section (action return specifications).
+
+**Key rule.** A state machine is the only construct permitted to mutate persistent state. All mutation happens inside T, expressed as a database write. Pure functions and queries never mutate state.
+
+---
+
+### Pure Function (PF)
+
+A pure function takes typed inputs and returns typed outputs with no IO, no state mutation, and no side effects. Pure functions are deterministic: same input, same output, always. They are used for guard evaluation, input validation, description normalization (as in Personal Todo's description policy — NFC normalization, trim, length check), invariant assertion, and projection formatting. A pure function may not invoke a direct effect.
+
+---
+
+### Direct Effect (DE)
+
+A direct effect is an explicit, observable IO operation: a database read, a database write, a clock read, an entropy read (for ID generation), or an external API call. Direct effects are never hidden inside pure functions or inside the SM definition. Every direct effect is named at its call site and appears in exactly one step of the pipeline.
+
+---
+
+## The execution pipeline
+
+Every state machine transition executes this exact sequence. No deviations. No additional steps.
+
+```
+Step 1.  READ STATE          DE   state_t  = database.read(entity_id)
+Step 2.  EVALUATE GUARDS     PF   clock_t  = clock.now()              (DE)
+                                  result   = G(state_t, event, params, clock_t)
+         if typed_failure:        return typed_failure(reason)   → caller
+Step 3.  TRANSITION + WRITE  DE   if pass:
+                                    id_t        = entropy.generate()   (DE, if needed)
+                                    state_{t+1} = T(state_t, event, params, clock_t, id_t)
+                                    database.write(state_{t+1})
+Step 4.  PROJECT OUTPUT      PF   output = R(state_{t+1}, event)
+                                  return output   → caller
+```
+
+**Clock and ID are injected, never called from within G or T.** The clock is read once per invocation — an explicit direct effect at the top of Step 2 — and the same `clock_t` is passed first to G and then to T; the entropy read is an explicit direct effect at the top of Step 3, before T runs. G and T receive `clock_t` (and T additionally `id_t`) as parameters; neither reads the clock or generates IDs internally. A G or T that calls `now()` or `uuid()` inside itself is non-deterministic — it cannot be given fixed inputs to produce a predictable output, which means it cannot be tested deterministically and cannot be treated as a compilation target. Injection discipline is what makes both functions deterministic in their inputs. The single shared reading also removes guard/stamp skew: the value a temporal guard validated is byte-identical to the value T stamps into the record. *(Placement revised 2026-07-12: this section previously read the clock at the top of Step 3, after guards — which left temporal guards, e.g. Approval Step's reject-future-timestamp and resolved-value ordering bounds, with no legitimate clock access, since a pure G may not invoke a direct effect. Surfaced by the 2026-07-12 scheduled rescan of Approval Step and Party Identity.)*
+
+**ID generation is conditional.** `id_t` is generated only for transitions that create new records — `place_hold` in Provisional Commitment, `assign` in Assignment, `add` in Personal Todo. Transitions that mutate existing records (confirm, release, expire, recall, edit, complete) do not generate an id.
+
+---
+
+### Step 1 failure
+
+If the database read fails, the pipeline aborts before Step 2. The guard never evaluates; no transition fires. The caller receives `state-unavailable`. This is an infrastructure failure, not a guard failure. Read 1 through 3, in the section titled The Database contract, are the rules a specification cites for it.
+
+---
+
+### Step 3 failure
+
+If the database write fails after Step 2 returns pass, the pipeline aborts. The caller receives `storage-failure`. The state at `entity_id` is unchanged — `state_t` remains the durable state. This is a critical distinction from Step 1 failure: in Step 3, the guard already passed. A caller who retries on `storage-failure` must understand that the transition may have partially executed — and whether partial execution is recoverable depends on the atom. (In Permissions, a `storage-failure` on `revoke` means the grant remains Active; the caller must not assume it is revoked and must retry. That atom states the caller's reading as Operation 15, and its Revoke persistence failure edge case requires the retry and, in a high-assurance deployment, a security alert.)
+
+---
+
+### Multi-write atomicity
+
+Some transitions make two writes (reassign in Assignment: mark old assignment Transferred, create new Active assignment; cascade-recall in Shared Todo's delete_task: recall the active assignment, then delete the task). Both writes are part of a single Step 3. The atomicity contract: both writes commit or both are rolled back. A partial state — one write committed, the other not — violates the atom's or composition's invariants and must not be observable. The implementation provides the transactional boundary, and Database 1 (the section titled The Database contract) is the contract it meets, written once: a specification cites it rather than restating it.
+
+---
+
+## Atom compilation rules
+
+The Grace Commons atom spec maps to the execution model through a direct section-to-target mapping:
+
+| Atom section | Compilation target |
+|---|---|
+| State (the declared states) | S — the named state set |
+| Operations (the signature block's inputs) | E — typed event set per action |
+| Operations (the signature block's refuses lines) | Typed failure space of G, in the order G answers it (Refusal 1) |
+| Operations (each rule that answers a refusal) | G — guard function per event, evaluating over state_t and clock_t |
+| Operations (each rule that records or changes a unit) | T — transition function body (DB write per transition) |
+| Invariants (single-state) | Post-write PF assertions; compiler emits checks after database.write |
+| Invariants (sequence-safety) | Compiler correctness obligations on T; runtime serialization guarantees |
+| Operations (the read actions) | Q — named read queries; DE reads + PF projection |
+| Operations (the signature block's answers lines) | R — per-event return projection; PF over state_{t+1} |
+| A policy family — String policy, or a spec's own, such as Personal Todo's Description policy | PF normalization functions, called inside G before guard evaluation |
+| Identity model | id_t injection rule: generate once per creation event, inject into T |
+
+**Invariant classes matter for code generation.** Single-state invariants (Invariant 7 timestamp ordering in Personal Todo, Invariant 2 event immutability in Event Log) compile to post-write assertions — pure functions the compiler emits immediately after `database.write` to check the new state satisfies the invariant before returning. Sequence-safety invariants (Invariant 1 membership exclusivity in Personal Todo, Invariant 7 reassign atomicity in Assignment) cannot be checked in isolation after a single write; the compiler must prove that no execution of T starting from a valid state can produce an invalid state, and the runtime must serialize transitions to prevent concurrent races from bypassing this guarantee.
+
+---
+
+### Section-name classification — the mapping tables are the SSOT
+
+The two section-mapping tables in this document — the atom-section → compilation-target table above, and the spec-section → test-type table in the Testing model — together with the classification below are the **canonical record** of the correspondence between [`spec-format.md`](./spec-format.md)'s section names and the runtime. spec-format owns the containers (which sections exist, their order, their tiers — see the section titled Ownership seam with the Execution Contract in it); this document owns what those sections mean when lowered. The tables are keyed to spec-format's section names, which makes them the seam where the two documents can silently drift: a section renamed or added in spec-format with no entry here leaves the compiler's contract speaking about a container that no longer exists — the same failure class as a mirrored library-state count. The classification plus the lint check below make that drift mechanically catchable instead of reader-dependent.
+
+**Every section name spec-format requires is classified exactly once** — either *compiling* (a mapping-table row or a named section of this document specifies its lowering) or *non-compiling* (its content is human-tier, scope-declaring, or evidence-bearing — consumed by readers and the methodology, not by the compiler):
+
+- **Compiling — atom shape:** Identity model; State; Capability requirement (lowers to the host seam's injected inputs); Operations (the signature block, the guard and transition rules and the decision table beside them — what the prose shape carried as Inputs, Outputs, Decision points and Behavior, with the description and validation rules of Inputs among them); Invariants; Examples. (Rows in the two mapping tables, keyed by the prose names they were written against.)
+- **Compiling — composition shape:** Composes (lowers to the constituent interface bindings and the declared instance topology — see the section titled Substrate composition invocation); Composition state (lowers per the section titled Composition state — each derived index compiles to a rebuildable projection with its named rebuild procedure); Capability requirement (lowers to the deployment's named knob surface and the host seam's injected inputs; titled Configuration before migration); Primitive policy (lowers to PF validation/normalization functions — the composition-boundary instance of the atom's validation rules; titled Primitive policies before migration); Identity (lowers to the id injection rule, as the atom's Identity model does); Audit arm (lowers to the substrate-rejection mapping of the section titled Substrate composition invocation — one branch per declared arm, plus the read-back that decides a landed record from an owed one); Action wiring (lowers to the directed invocation graph plus one composition test per named action); Reconciliation (lowers to a scheduled leg with its own entry point, started as the section titled Scheduled legs says, its two edges as guards, and its writes under the declared service identity); Housekeeping (lowers to a scheduled read-and-report leg with its edges as guards and no constituent write — the compile-time distinction from Reconciliation being that it emits findings rather than records, and carries no window); Scope vocabulary (lowers to the scope constants the Permissions instance is provisioned with and the gate each named action calls); Verdict (lowers to the verification read's answer function — a total decision over the evidence the read gathered, one branch per class or outcome); Composition-level invariants (post-wiring assertions).
+- **Compiling — regulated overlay:** Generation acceptance (a grouping header whose Conformance checks compile to named read queries); Conformance checks (named read queries; titled Record checks in the prose shape); Regulated adversarial scenarios (acceptance tests).
+- **Non-compiling (named):** Frontmatter; Title and summary blockquote; Intent; Summary; Non-goals (scope declarations naming composing patterns, which do not lower); Edge cases (a grouping header: the rule families under it — Atomic writes, Clock dependence, Clock semantics, Concurrency, Indeterminate outcome, Retention asymmetry and String policy — lower by their own rules, and its prose cases do not); Wiring decision (the defended decision for the human tier, whose rules restate no lowering the Action wiring does not carry; titled The load-bearing wiring decision before migration); External checks (questions needing evidence the records do not carry); Composition notes; Terms; Vocabulary; Standards references; Status; Ledger; Decisions.
+
+*Composition logic* and *Structure* are **grouping headers**, not leaf sections: neither has a lowering of its own, and each is classified through its subsections — Structure through Identity model, State, Capability requirement, Operations and Invariants; Composition logic through Composition state, Capability requirement, Primitive policy, Identity, Audit arm, Action wiring, Reconciliation, Housekeeping, Scope vocabulary and Verdict (compiling, above) plus Wiring decision (non-compiling, above). It is named here so that every required section name spec-format enumerates appears in the classification, per lint check (1) below.
+
+**The section-name lint check (specified; sibling of the dangling-link check).** A linter pass in the same family as [`tools/linter/lint.py`](tools/linter/lint.py)'s dangling-link check and the planned dangling-capability check enforces the classification bidirectionally: (1) every required section name enumerated in spec-format's three shapes appears in the classification above, and (2) every name in the classification is still a section spec-format requires. A name failing (1) is an unclassified new or renamed section — this document has not decided what it means at runtime. A name failing (2) is a stale classification entry — this document speaks about a container that no longer exists. Either is a finding routed through the standard channel against the edit that broke the correspondence. `lint.py`'s `H-classification` runs it (landed at council read 80), reading the section titled Heading standard in `spec-format.md` for direction (1) and the whole of spec-format for direction (2); any edit to either document still names the other in the same change.
+
+---
+
+### Regulated atoms
+
+Atoms carrying the regulated overlay, and any atom whose examples invoke regulated domains, compile with two additional outputs beyond the standard set:
+
+**Generation acceptance checks.** Each check in the atom's Generation acceptance section compiles to a named read query over the record set — a SQL query an external auditor can run to verify the invariant holds without recourse to source code. These checks are first-class outputs of the compiler, not tests.
+
+**Generation acceptance 1: A check comparing a record with an earlier state reads its committed versions.** Where a conformance check compares a record with an earlier state of it — that a field stands unchanged, that a record left no terminal state, that a list grew no shorter, that no record left the database — it reads the record's committed versions, each the record as it stood at the commit that wrote it, which Database 5 keeps readable, and never an auditor's earlier read, which no record holds. The check holds across every commit since the record was first written, so a deployment that changed a record before an auditor's first read fails it as one that changed the record after does. A specification that relies on this cites Generation acceptance 1 by its label; it does not restate it. Thirteen specifications once wrote such a check as an auditor's later read compared with an earlier one, and five Final Critiques pointed theirs at the committed versions, each after a round found a build with no earlier read to compare passing a deployment that broke the rule the check names.
+
+**Regulated adversarial scenario tests.** Each of the three canonical adversarial scenarios (regulator audit, disputed transaction or data-subject request, breach investigation) compiles to a named test that seeds the record set to a known state, runs the adversarial query, and asserts the expected result. These tests are executable specifications of the invariants the atom claims to provide to an external evaluator.
+
+---
+
+## Composition model
+
+A composition is not a merged state machine. It is not a higher-order state machine with its own persistent state. It is a **stateless interpreter of a directed invocation graph over stateful atoms** — a function-level orchestration that sequences constituent SM transitions within the scope of a single action invocation. "Directed invocation graph" names what the composition structurally is: a graph of atom calls with explicit directed edges (sequential, conditional, or parallel — see Composition types below). The graph is a first-class compilation artifact, not prose description; the compiler reads the graph to emit the wiring code, not the other way around.
+
+The distinction is load-bearing. A formalization that gives the composition its own state set S introduces a state artifact that has no atom spec, no identity model, no durability contract, and no invariants. The question "where does the composition's orchestration state live?" has no answer within the model — and that is the model's fault, not the implementor's. Grace Commons eliminates the question by construction: **compositions carry no persistent truth of their own beyond their constituents' records.** What looks like "orchestration state" — the intermediate result of a constituent call, the branch taken, the flag set mid-sequence — is ephemeral local state within a single action invocation. It lives on the call stack. When the action returns, it is gone. One construct refines this rule without weakening it: a composition may carry a **derived index** — read-path state every fact of which is rebuildable from its constituents' records — precisely because a rebuildable projection carries no truth of its own. The rule, its twin extraction rule, and the obligations they impose are in the section titled Composition state below (adjudicated 2026-06-10).
+
+If a composition needs to record that a multi-step sequence occurred — coordination history, execution progress, ordered event trace — it does so by composing Event Log. The history belongs to Event Log's records and is governed by Event Log's invariants. The composition does not grow records of its own to hold what an atom already owns.
+
+---
+
+### Composition state — the derived-index rule and the extraction rule
+
+*(Adjudicated 2026-06-10, Refactor 1. This section is the single owner of composition-state semantics; the section titled Composition state in [`spec-format.md`](./spec-format.md) is the container that documents each element against it.)*
+
+The corpus's composition specs carry a **Composition state** subsection (titled `Application state` until the 2026-06-11 vocabulary sweep migrates each heading) — binding maps, grant-pairing maps, attribution indexes — while the model above says a composition carries no persistent truth. Both are right, and the reconciliation is one question asked of every state element: **is every fact in this element fully derivable, at any time, from the constituents' records through their declared read surfaces?**
+
+**Derivable → derived index (permitted construct).** A derived index is read-path acceleration over constituent truth: a map or index every fact of which is reconstructible by a named rebuild procedure over constituent query surfaces. It is explicitly a cache, and it is permitted exactly because it carries no truth — which is why it does not reintroduce the state artifact the model forbids: no identity model, durability contract, or invariant surface is *needed* for state that can be regenerated from spec-governed records at any time. Three obligations attach:
+
+1. **Named derivation.** The spec names the constituent records the index derives from and the rebuild procedure — the query enumeration that regenerates it from empty.
+2. **Outside the atomicity surface.** The index is excluded from its action's multi-write atomicity obligation: its population is *evidence* that the truth-bearing writes committed, never a peer write whose failure the compensation protocol must handle. A missing or lost entry is a rebuild trigger, not data loss; a formal model of the action models the truth-bearing records and omits the index.
+3. **No consistency claim.** A derived index inherits the best-effort semantics of composition queries (see Boundary rules): it claims no cross-constituent transactional consistency. The moment a projection must be transactionally consistent with its sources — or readable under a guarantee a rebuild cannot honor — it is the materialized-projection *atom* of the Boundary rules, not an index.
+
+**Derived index 1: A missing entry is rebuilt before an action decides on it.** Where an action reads a derived index and finds no entry for a key, the action does not answer, admit or refuse on the missing entry before rebuilding the key's entry from the constituent records the index derives from, by the rebuild procedure obligation 1 names; it decides on the rebuilt entry, and a key the rebuild finds no fact for carries no entry. A specification that relies on this cites it by its label, `Execution Contract Derived index 1`, and does not restate it. Five specifications once ordered the rebuild first for themselves, each in the form `MUST NOT … BEFORE rebuilding`, in the Final Critique that found one build rebuilding the entry and deciding on its records while another decided on the miss.
+
+The worked example of the derivable pole is Immutable Ledger's `disclosure_to_event`: the binding fact already lives in the substrate ledger's `ledger.disclosed` events (`data.disclosure_id`), and Immutable Ledger's own spec states that both orphan checks run by reading the substrate's Event Log without a separate index — the map is pure read-path acceleration over substrate truth.
+
+**Non-derivable → extracted atom (the extraction rule).** Composition state that carries truth *not* reconstructible from constituent records is a not-yet-extracted atom. The model's original objection stands undiluted for this case — truth-bearing records a composition owns have no atom spec, no identity model, no durability contract, no invariant surface — and the repair is to give them one by extraction, not to bless the omission. The worked example of the non-derivable pole is Idempotent Reservation's `token_results`: token → result is new truth (*which result was returned for this token*) that no replay of Provisional Commitment + Duplicate Prevention reproduces — Duplicate Prevention answers *have I seen this identity?* (membership, no payload), and its own spec states that the concept does not act on the result. The extraction this forces — an **Idempotency Result Memo** atom (token → result, single write, window-governed eviction) — is opened as a roadmap proposal (see [`roadmap.md`](./roadmap.md)); Duplicate Prevention + the Memo together complete idempotent-replay semantics, and the wiring layer thins back toward pure orchestration.
+
+**Until an extraction lands, the exception is named, never normalized.** A composition carrying a non-derivable element declares it in Composition state as *extraction-pending*, naming the proposed atom. The flag is what keeps the debt visible: unflagged truth-bearing composition records are a conformance finding; flagged ones are recorded debt riding the extraction's schedule. Extractions touch grounded patterns and their formal models, so they ride touch-triggered re-pass rounds — budgeted, not ad hoc.
+
+This section resolves an inconsistency this document previously carried in three passages at once: the composition model's no-persistent-state rule, a wiring-layer example citing Idempotent Reservation's token-result cache approvingly, and a data-layer clause filing `token_results` under atoms with multiple record types while the A-stack section calls Idempotent Reservation the first composition. The rule above replaces all three readings: the cache is real, it is non-derivable, and it is therefore extraction-pending — not an atom's second record type, and not sanctioned composition records.
+
+---
+
+### What the wiring layer does
+
+The wiring layer has three jobs:
+
+1. **Defines the composition's action surface** — the named actions in Shared Todo (`add_task`, `assign_task`, etc.), the named actions in Idempotent Reservation (`place_hold`, `confirm`, etc.).
+2. **Sequences constituent SM transitions in declared order** — `Permissions.permitted` before `PersonalTodo.add`, `DuplicatePrevention.check` before `ProvisionalCommitment.place_hold`.
+3. **Enforces application-level invariants that no constituent atom can enforce alone** — cascade-on-delete in Shared Todo (Assignment.recall before PersonalTodo.delete), exactly-once-in-window in Idempotent Reservation (retries return the prior result — backed by `token_results`, the worked *extraction-pending* case of the section titled Composition state above).
+
+---
+
+### Composition types
+
+Three wiring patterns cover the full space of Grace Commons compositions:
+
+**Sequential.** The output projection of atom A is used as input to atom B, which runs after A completes. `DuplicatePrevention.check → ProvisionalCommitment.place_hold` in Idempotent Reservation is sequential: the check must pass before the hold is attempted. Sequential composition does not introduce shared state; the intermediate result is a local value passed as an argument.
+
+**Conditional.** A pure function over current constituent state selects which atom to call, or whether to call the next atom at all. `Permissions.permitted(actor, task, write)` in Shared Todo is a conditional gate: if G returns `typed_failure`, the composition aborts without touching Personal Todo. The branch selection is a pure function — no runtime ambiguity, no stored routing decision.
+
+**Parallel.** Two or more atoms are called independently, with no output of one serving as input to the other. The composition's action surface may derive a joint projection from both results — a read query that joins constituent Q surfaces — but neither atom's transition depends on the other's. No shared state mediates the parallel calls. Parallel wiring is governed by the fan-out boundary rule below and worked in the [Notification Fanout](./compositions/notification-fanout.md) composition (Subscription × Notification); whichever wiring pattern a composition uses, the rule is the same: independence means no shared persistent state, only a joint projection.
+
+---
+
+### The atom interface contract
+
+A composition interacts with each constituent atom through a fixed interface: **accept an event, receive a projection.** Nothing more.
+
+```
+AtomInterface = {
+  accept(event, params) → output | typed_failure(reason)
+  query(name, params)   → result_set
+}
+```
+
+The composition does not read the constituent atom's internal state directly. It does not perform DB joins against the atom's table outside the atom's declared Q surface. It does not inspect the atom's state schema (S). It does not call T or G directly — those are invoked by the atom's own pipeline when `accept` is called. The interface is opaque by design: a composition that reaches past it is not wiring atoms, it is coupling to implementation details and will break when the atom changes. For constituents that are themselves compositions — substrates — the same interface discipline generalizes; see the section titled Substrate composition invocation below.
+
+**Atom interface 1: A composing pattern changes a constituent's records only through the constituent's declared actions.** A composing pattern writes a constituent's records only by calling the constituent's own declared actions, each through the constituent's pipeline, never by a write of its own. Reading the records keeps a composing pattern from no such call: a composition action reads, guards and then makes its constituent calls in its Step 3 (the section titled The pipeline applies to composition actions), and a rule of a constituent that forbids a composing pattern reading its records to write them forbids only a write outside the constituent's declared actions. A specification that relies on this cites it by its label, `Execution Contract Atom interface 1`, and does not restate it. Nine atoms once wrote, as a composition note, that a composing pattern reading their records MUST NOT write to them, which forbade the call a composing action makes through the atom's own action after its read, so one build obeyed the note while another delivered the composer's wiring; six Final Critiques tombstoned the note, and the sweep that wrote this rule cut the other three.
+
+**No cross-atom DB joins.** The prohibition follows from the interface contract. If two atoms' records are joined outside their Q surfaces — a raw SQL join across their tables — the join logic is not governed by either atom's spec. It has no invariants, no guard semantics, no rejection reasons. When either atom's schema changes, the join breaks silently. Derived queries that need data from two atoms compose their Q surfaces in a pure function: `join(AtomA.query(name), AtomB.query(name))`. The pure join function has no IO; the two Q calls are the direct effects.
+
+---
+
+### The pipeline applies to composition actions
+
+A composition action that sequences two constituent SM transitions still executes the full four-step pipeline at the composition level — with Step 3 containing the sequenced constituent calls and the multi-write atomicity obligation applying across every constituent's records. The wiring layer is itself subject to the pipeline; it is not an exception to it.
+
+Derived queries (the responsible actor and the visible tasks in Shared Todo) are pure joins over constituent Q surfaces — direct effects (reads of constituent records) followed by a pure join function. The composition does not own records of its own; it derives.
+
+---
+
+### Scheduled legs
+
+A Reconciliation lowers to a scheduled leg with its own entry point, and a Housekeeping section to a scheduled read-and-report leg (the section titled Section-name classification); a sweep, scan or other run a specification starts on a cadence, rather than on a caller's call, is a scheduled leg too. What starts a scheduled leg is the same for every specification, so it is written once, here: a specification that relies on it cites it by its label, `Execution Contract Scheduled leg 1`, and does not restate it.
+
+**Scheduled leg 1: The deployment supplies a scheduled leg's starter.** The deployment supplies each scheduled leg's starter: a facility that starts the leg whenever a process serving the instance starts — the instance's first start and every restart — and on the leg's cadence, and that survives the loss of any one process serving the instance, so a run the cadence charges starts though the process that ran the previous run has died. An instance whose starter is absent does not start. When a run starts — its cadence, and the bound it starts within after an earlier run — is the specification's, and the starter keeps it. A starter is a deployment facility that no record carries, so whether a deployment supplies one is an external check, read from the deployment's own declaration as Conformance 9 reads its wiring. Five specifications once supplied a starter for themselves, each a scheduler its own rules named, and Recoverable Invocation's Final Critique 24 found the page writing its cadence and no starter, so one build ran its sweep only at restart, or from a timer inside one process, while another kept the window.
+
+---
+
+### Substrate composition invocation
+
+*(Added 2026-06-10, Refactor 1.)* A composition may name another composition as a constituent — a **substrate** — rather than re-listing the substrate's own constituents. The section titled Compositions of compositions in [`spec-format.md`](./spec-format.md) owns the container convention (how the Composes section names a substrate); this section owns what the naming means at runtime. Without it the contract is silently incomplete one level up: the atom interface contract and the conformance definition speak only of constituent *atoms*, while the corpus composes compositions — Defensible Retention names Audit Trail; Resolve a Person's Data Rights names Defensible Retention, whose own substrate is Audit Trail; Privileged Access Provisioning names Multi-Party Approval and Audit Trail at once.
+
+**The interface generalizes; opacity is preserved.** A substrate is invoked through exactly the surface its own spec declares — its named composition actions and its read surface:
+
+```
+CompositionInterface = {
+  invoke(action, params) → output | typed_failure(reason)
+  query(name, params)    → result_set
+}
+```
+
+This is the atom interface contract one level up, and every opacity clause carries over: the composing layer does not read the substrate's constituent records directly, does not join against them outside declared read surfaces, and does not re-derive or police the substrate's internal wiring. The substrate's rejection taxonomy is whatever its action signatures declare; each rejection is mapped — **propagated** (passed through unchanged) or **renamed** (re-coded at the boundary, including surfaced under a new composition-level code) — exactly as a constituent atom's rejections are. A constituent rejection that determines an action's outcome always *surfaces* at the boundary under one of those two forms; it is never silently absorbed. (Idempotent replay returns a cached outcome by *not re-invoking* the constituent — a query branch on a duplicate-token check, as in Idempotent Reservation — not by swallowing a rejection the constituent raised.) This is the canonical rejection-mapping rule for every composition, atom-constituent or substrate; spec-format's *Action wiring* container enumerates the taxonomy and defers here for what the mapping means.
+
+**Constituent failure 1: A constituent's storage-failure is the composing action's.** Where a constituent answers `storage-failure` to a call a composing action makes, Database 1 fails the whole composing action: none of its writes commits, its constituents' included, except a record the composing action's protocol has already had acknowledged under Database 3, which that protocol closes by its own refusal and which stays committed (Recoverable Invocation commit 2, commit 3, Non-goal 1). The composing action answers `storage-failure`, as Read 4 answers a call whose own write fails, unless the composition lands the constituent's answer as a code of its own that commits nothing, such as recording-failure carrying intent or a code naming the step that failed, by a rule that cites this label. Five Final Critiques cured a composition whose rewrite onto the Database contract had taken the old storage arm away, so that no rule landed a constituent's storage-failure, and fourteen rules on six compositions restated this one.
+
+**Constituent failure 2: A constituent's registry-unavailable is the composing action's.** Where a constituent answers `registry-unavailable` to a call a composing action makes — the host could not read, at the seam, the registry the constituent decides on, as Actor Identity's attest, Retention Window's place under retention and Provisional Commitment's place hold answer it — the composing action answers `registry-unavailable` unchanged, as a propagated rejection, unless the composition lands it as a code of its own by a rule that cites this label. Five Final Critiques cured a composition that landed a constituent's registry-unavailable nowhere, so that one build answered a code the composing action's signature did not carry and another a refusal its caller reads as final: two landed it where they land the constituent's storage-failure, keeping a signature many composers map, and three passed it through. A constituent's `mechanism-unavailable`, which Actor Identity's attest answers where the deployment's credential mechanism supplies no credential check, is the composing action's on the same terms: the composing action answers `mechanism-unavailable` unchanged, as a propagated rejection, unless the composition lands it as a code of its own by a rule that cites this label.
+
+**Constituent failure 3: A constituent's state-unavailable is the composing action's.** Where a constituent answers `state-unavailable` to a call a composing action makes, the constituent wrote nothing (Read 3), and the composing action commits nothing (Database 1) and answers `state-unavailable` unchanged, as a propagated rejection (Read 1), unless the composition lands it, by a rule of its own, as a code of its own that commits nothing, as one landing it where it lands the constituent's storage-failure does, or resolves it, by a rule of its own that cites the constituent's rule giving the containing pattern the response (Duplicate Prevention Operation 12), as the answer that rule names, the composing action then deciding on its own guards. A specification that relies on this cites it by its label, `Execution Contract Constituent failure 3`, and does not restate it. Seven specifications once landed it for themselves, each in the Final Critique that found no rule landing it, so that one build passed it through and another answered it as the composition's own code.
+
+**Constituent failure 4: A substrate's recording-failure lands whatever step it carries.** Where a substrate answers a code that commits nothing and carries the step that failed, as Audit Trail's [Record Action] answers recording-failure carrying step-2, step-3 or step-4, a rule of the composing action that lands that code at a call lands it whatever step it carries, the retention step's included, unless a rule of the composition lands that step otherwise. A specification that relies on this cites it by its label, `Execution Contract Constituent failure 4`, and does not restate it. Eight specifications once landed Audit Trail's recording-failure(step-4) for themselves, each in the Final Critique that found an Audit arm landing only the append step's recording failures, so that one build answered intent, another outcome and a third the step.
+
+**Pipelines nest whole; they do not flatten.** A substrate action invoked in a composing action's Step 3 executes its own complete four-step pipeline — read, guard, transition-plus-write, project — inside the invocation, exactly as it would standalone. The pipeline-applies rule is invocation-scoped, not call-depth-scoped: one pipeline per action invocation, each complete, at every depth. The composing action's Step 2 guards evaluate only the composing layer's own preconditions; the substrate's guards run inside the substrate's pipeline when it is invoked, and a substrate guard failure surfaces to the composing layer as the invocation's typed failure *during Step 3* — a constituent rejection mid-sequence, handled by the composing action's declared failure path, never retroactively reclassified as a composing-layer Step 2 outcome.
+
+**Atomicity layers; it does not flatten.** Each layer owns the atomicity of exactly the write sequence *it* sequences. A substrate action that internally writes several records (Audit Trail's `record_action` commits an event append, an attestation and a retention record) discharges its own multi-write atomicity obligation inside its own Step 3. The composing layer treats the invocation as **one atomic constituent call, modulo the substrate's declared partial-failure surface** — it inherits the substrate's recovery discipline by reference and never re-derives it (Multi-Party Approval's audit-completeness invariant holding *modulo* Audit Trail's partial-attestation edge case is the worked form). The composing layer's own multi-write obligation spans its own sequence. Where every write in that sequence — including the substrate invocation's — is a recoverable database write, the implementation may discharge an all-or-nothing claim by providing a transactional boundary enclosing the whole composing Step 3 (the multi-write atomicity contract's rule: the spec names the obligation, each target supplies the mechanism; Actor Suspension's all-or-nothing multi-surface revocation is the worked form). Where an irreversible write — constituent or substrate — precedes further writes in the sequence, all-or-nothing rollback is unavailable by construction, and the composing spec must name the resulting orphan state and its compensation in a *Cross-record consistency under partial failure* edge case (sequential-with-compensation; Immutable Ledger's `disclose_subset` is the worked form). Two flattening reads are forbidden: claiming the composing action is atomic *because* the substrate's action is, and requiring rollback across a write the constituent's own spec declares irreversible.
+
+**Instance topology is declared; instance unity is the default.** Reaching a substrate's constituents "transitively" means: exactly one instance of each transitively-reached constituent exists at the composition — the one the substrate carries — and the composing layer never maintains an undeclared duplicate. Two consequences, both load-bearing in the corpus:
+
+1. **Declared direct invocation of a substrate constituent is permitted.** A composing layer may call a substrate constituent's own declared action directly on the instance the substrate carries — Multi-Party Approval and Resolve a Person's Data Rights record their own events by calling `AuditTrail.record_action` on the Audit Trail their substrate carries — when three conditions hold: the capability is the constituent's *own declared* action or query (capability provenance — never an ambient "the substrate can…"); the instance is the substrate's (no second instance, no bypass copy); and the path is named in the Composes section (the reach is declared topology, not discovered plumbing). This is the established substrate-composition pattern, it is layer-count-agnostic (Resolve a Person's Data Rights reaches Audit Trail through Defensible Retention, two layers down), and it licenses invoking declared *surfaces* only — never reading records.
+2. **Deliberate multi-instance topologies are declared as such.** Where the same atom legitimately appears twice — a business-record Retention Window distinct from the audit-event Retention Window inside an Audit Trail substrate (Defensible Retention, Customer Onboarding) — the spec declares both instances and their distinct policies explicitly. Undeclared instance duplication is a conformance failure; declared distinct instances are correct topology. A composition naming two substrates that share a constituent declares whether the instances coincide (Privileged Access Provisioning: one Audit Trail instance serving both its own events and its Multi-Party Approval substrate's chain events).
+
+**Transitive reads go through declared read surfaces.** A composing layer may read transitively-reached state only through the substrate's declared read surface, or through a reached constituent's declared queries on the substrate's instance per the direct-invocation rule — Immutable Ledger validates disclosed-subset membership by reading the substrate's Event Log filtered by `action_ref`, passed through Audit Trail's read surface. A raw join against a substrate constituent's tables is the cross-atom DB join prohibition operating one level up, and fails the same way: ungoverned by any spec, silently broken by any schema change.
+
+**Mechanism capability invocation is the named residual.** One invocation class fits neither an action call nor a query: a composition-introduced surface that consumes a *deployment-declared mechanism capability* of a constituent. Immutable Ledger's `verification_bundle` construction invokes the configured Tamper Evidence mechanism's inclusion-proof capability — declared by the deployment as a named configuration capability — because no constituent action produced a subset proof when the surface was introduced. This is permitted under exactly the capability-provenance discipline (the section titled Capability provenance in [`pressure-testing.md`](./pressure-testing.md)): the capability is declared (a named deployment obligation, verified by an externally-clearable check), the consuming surface is composition-introduced and specified at the composition layer, and the invocation is logic-confinement-clean — the mechanism is configured material invoked at a named step, never crypto or IO improvised inside core logic. The honest residual is also named: a recurring mechanism-capability surface is a not-yet-extracted-atom signal (Immutable Ledger's names the forthcoming Subset Proof atom as its retirement path), so this construct is a bridge with a named exit, not a permanent third interface.
+
+**Conformance extends recursively.** A composition is conforming when all of its constituents — atoms *and* substrate compositions, recursively — are conforming and its application-level invariants hold over the joint record set its wiring produces. A substrate's non-conformance is inherited: no composing layer is conforming over a non-conforming substrate. And no composing layer is obligated to re-verify what the substrate's own conformance already establishes — inheriting a guarantee by reference is the point of naming a substrate.
+
+---
+
+### Boundary rules
+
+These are the hard limits where the composition model either holds or silently reintroduces hidden machinery. All four are variants of the same pressure: coordination complexity trying to migrate into the composition layer. The composition layer must not absorb it.
+
+**Fan-out is a decomposition boundary, not a transition.** No atom produces non-atomic fan-out side effects. An action that triggers delivery to N recipients is not a single transition — it is two responsibilities that belong to two atoms: recording the intent (one write, fully atomic, one atom) and executing per-recipient delivery (N independent state machines, one per recipient, each retryable independently). Fan-out that is modeled as a single transition with N side effects has introduced partial-write ambiguity — some recipients receive, others do not, and the atom's consistency domain is undefined. The correct decomposition: Intent atom records the trigger; Fanout composition creates N Delivery Task atoms from the intent; each Delivery Task atom owns its own state, retry, and failure. This is the [Notification Fanout](./compositions/notification-fanout.md) pattern.
+
+**Parallel composition carries no rollback guarantee.** If A succeeds and B fails in a parallel composition, A's write stands. The composition does not roll back A. If the system requires A to be undone when B fails — if atomicity across parallel branches is a correctness requirement — that is not a composition problem. It is a new atom: a compensating state machine that must be explicitly defined, with its own states (Pending, Compensated, Unrecoverable), its own guard logic, and its own invariants. The composition invokes it. If rollback is needed, you are defining a new atom, not composing.
+
+**Atoms may carry opaque references to entities they do not own.** An Approval Step carries a subject reference for the thing awaiting approval; it does not own that thing's state machine. The invariant rule: an atom's correctness conditions may never depend on the continued existence of the referenced entity. A dangling reference — a subject reference whose subject has been deleted — produces no invariant violation and no refusal of its own: the decision state machine answers a call carrying one exactly as it answers a call carrying a live reference, since none of its guards consults the referenced entity (Approval Step never confirms that a subject reference names a known subject, its Identity 12), and whether the subject still exists is the caller's to check. The decision state machine remains in a valid state regardless of whether its subject still exists. This separates the lifecycle of the decision from the lifecycle of the thing decided about, which is the correct boundary: Approval Step owns the state of a decision about a reference, not the state of the referenced thing.
+
+**Composition queries are best-effort projections over independent consistency domains.** No cross-atom transactional read guarantee exists or can be provided without reintroducing a hidden consistency layer. A join across two constituent Q surfaces is two sequential direct-effect reads; between those reads, another writer may commit a transition to either atom's records. This is not a defect — it is the correct behavior of a system where each atom owns its own consistency boundary. If the system requires consistent cross-atom reads — a query surface that must reflect all in-flight writes atomically — that derived state becomes its own atom: its own records, its own state machine, its own invariants. A materialized projection atom is a first-class atom, not a cache. A cache's consistency depends on invalidation strategy; an atom's correctness holds by invariant.
+
+**The meta-rule.** Anything that requires coordination, consistency, fan-out, or lifecycle guarantees is not the composition's job. It is either an atom or a decomposition into multiple atoms. Composition is not a system of control. It is a system of invocation.
+
+---
+
+### Three-way taxonomy
+
+The model has exactly three kinds of runtime entity. No fourth kind is permitted.
+
+| Entity | Kind | Owns state? | Owns history? |
+|---|---|---|---|
+| **Atom** | Persistent state machine | Yes — its own records | Only its own record set |
+| **Composition** | Stateless orchestration function | No — call-stack only | No |
+| **Event Log** | Atom (temporal) | Yes — its own records | Yes — the only legitimate history records |
+
+If a composition seems to need persistent state, the answer is not to give the composition records of its own — it is to compose Event Log. The composition's "memory" of what happened is the Event Log's record set, governed by Event Log's invariants and Q surface. The composition remains stateless; the history remains auditable and spec-governed.
+
+A derived index (the section titled Composition state) is not a fourth kind: it is a rebuildable projection of constituent records — the same ontological status as any derived artifact — and owns neither state nor history in the table's sense. The taxonomy governs truth-bearing runtime entities; anything truth-bearing is one of the three.
+
+---
+
+## UI projection contract
+
+```
+UI = render(Q(state))
+```
+
+The UI is a pure function of projected state. Q is the query surface — the named read queries that execute as direct effects and return typed result sets. `render` is a pure function from typed result sets to UI elements. In A-stack, `render` is a JSX component function: `(result: ProjectionResult) => JSX.Element`.
+
+Rules:
+- UI components have no direct database access. All data arrives through Q.
+- UI components have no local state that is not derivable from Q. Hidden component state is a violation of the contract.
+- Subscriptions, reactive bindings, and implicit update triggers are not permitted. When state changes (after a successful Step 3), Q is re-invoked and render is called with the new result. The mechanism that re-invokes Q is explicit and named — it is not a framework lifecycle.
+- A UI component that caches a result and displays stale state after a transition has violated the contract.
+
+---
+
+## The Database contract
+
+Every specification keeps records, and every deployment keeps them in a database. What the database guarantees is the same for every specification, so it is written once, here, as Logic confinement 7 writes the clock's guarantees once: a specification that relies on one of these rules cites it by its label, `Execution Contract Database 2`, and does not restate it. The contract was derived from the specifications, not from a product: a rule-by-rule census of what the corpus obliges of the database, kept where every specification needed it and set aside where only some did. XTDB supplies all of it natively and is the default render target; a relational database is a valid target, with the parts it lacks supplied by generated code. The database's own clocks, valid time and transaction time, are the render's business; no specification names either.
+
+**Database 1: One transaction per action.** Every write an admitted action makes, to any of the records its specification names, commits together or not at all. No reader ever sees some of an action's writes without the rest.
+
+**Database 2: Guards read inside the transaction.** The state an action's guards decide on is read inside the transaction that writes the action's effects, so no write commits against a state its guards did not see. Two actions on one record are serialized: the later one reads what the earlier one committed, and a conflict is answered by reading again and deciding again, never by overwriting.
+
+**Database 3: Committed means kept.** The database acknowledges a write only once it has committed, and a committed write survives a restart of the process and of the database. A write that did not commit leaves nothing any reader can see.
+
+**Database 4: The database never edits.** No committed record changes or disappears except by an action a specification declares. The database runs no trigger, default, cascade, expiry or compaction that alters or removes a committed record; erasure and purge happen only as the specification that owns them says.
+
+**Database 5: Every committed version stays readable.** A record's earlier versions remain readable after it changes, each as it stood at the commit that wrote it, so a reader can ask what a record was as of any past commit. An erasure or purge a specification declares removes every version of what it erases, not only the current one. A [shred](./glossary.md), which destroys the keys that decrypt a record's content, is not an erasure: it removes no version.
+
+**Database 6: An atom's no-removal rules bind the atom's own actions.** An atom's rules that no record leaves the database, or that no field of a record changes, bind the atom's own actions. A purge or scrub another specification declares under Database 4 is answered by that specification's records, not by a check over the atom's records. Nine atoms once said so for themselves, each in the Final Critique that cured it, by deleting a rule written with no actor or by moving a check to their external checks.
+
+**Database 7: Every call goes to the same database instance.** The deployment routes every call of one instance of a specification to the same database instance, so every read answers over all the records the instance's calls wrote. A deployment that runs several instances of one specification gives each its own database instance. Twelve atoms once said so for themselves. Eight wrote *route EVERY call to one database instance*, which a deployment splitting the calls across two instances also obeys while a read misses the records the other instance holds; four had their Final Critiques cure it to the same database instance, and this rule takes Selective Disclosure's words.
+
+**Store 1: Deleted.** Database 1 owns it.
+
+**Store 2: Deleted.** Database 2 owns it.
+
+**Store 3: Deleted.** Database 3 owns it.
+
+**Store 4: Deleted.** Database 4 owns it.
+
+**Store 5: Deleted.** Database 5 owns it.
+
+### A particular family: Order
+
+One guarantee only some specifications need, and a specification that does not cite it may not assume it. A specification that rests on it names the label in its Capability requirement section.
+
+**History 1: Deleted.** Database 5 owns it: since 2026-10-20 basic history is kept for every specification, not only for those that cite it.
+
+**Order 1: Commits have one order.** Every commit carries a position in a single order that only ever increases and that every reader reads the same way, so two records' commits can always be compared.
+
+On a database with no native version history, Database 5 is rendered as generated append-only version tables; on a database with no native commit order, Order 1 is rendered as a sequence assigned inside the commit (Database 1). Neither is a second database.
+
+### A family for every action: Read
+
+What an action answers when a read of the database fails is the same for every specification, so it is written once, here, and holds for every specification as the Database rules do: a specification that relies on one of these rules cites it by its label, `Execution Contract Read 1`, and does not restate it. The section titled Step 1 failure is the pipeline's view of the same rules. Ten atoms once stated them for themselves, each in the Final Critique that cured it. Read 4 says of every call an action does not admit what Read 2 says of a call whose read failed; five atoms once held their effect rules to the calls an action admits, each in the Final Critique that cured it. A composition's constituents answer their own failed reads by these rules, and a composition maps that answer as it maps any constituent rejection (the section titled Substrate composition invocation).
+
+**Read 1: A failed read answers state-unavailable.** Where a read an action makes of the database fails, the action answers `state-unavailable`, ahead of every refusal that read would have decided: every guard that runs after the read, which in an atom is every guard, since the read is Step 1. A specification whose domain answers a failed read otherwise states its own answer, and that answer stands in place of this one.
+
+**Read 2: Guards decide only on an answered read.** An action's guards decide only on a read the database answered. A rule of a specification saying what an action answers or writes holds only for a call whose read answered, and a rule comparing calls compares only such calls; where a call's read fails, Read 1 answers it.
+
+**Read 4: A rule saying what an action does holds only for a call the action admits.** An action admits a call that passes every precondition its specification states and whose database writes commit. A rule of a specification saying what an action does, or what it answers other than a refusal, holds only for a call the action admits, whatever the rule names as its subject: a refused call writes nothing and answers its refusal, and a call whose write fails answers storage-failure (the section titled Step 3 failure).
+
+**Read 3: A state-unavailable answer writes nothing.** An action that answers `state-unavailable` writes nothing, and its answer says nothing about the records it could not read: whether a record exists, matches or stands in a state. The call may be retried.
+
+**Read 5: A read answering many records answers them in one order.** Where a specification's read answers more than one record and names no order, it answers them by each record's creation instant, earliest first, then by id ascending (Logic confinement 10). A specification that names its own order keeps it.
+
+**Read 6: A read answers the whole match.** A read answers every record its filter matches, and a specification sets no cap on it. A deployment may deliver the answer in pages, provided the pages together answer the same records in Read 5's order. A specification whose domain needs a cap states its own, and that cap stands in place of this rule.
+
+**Read 7: A failed attempt a rule records is answered, not refused.** Where a specification obliges a record of a failed attempt of an action, the action lists that failure on its answers line and not on its refuses line, so the call is admitted and its record commits with it; a record a refusal is obliged to keep is erased, since a refused call writes nothing (Read 4). A failure whose call must write nothing stays a refusal, and the specification obliges no record of it: a constituent's storage-failure (Constituent failure 1), and a refusal that undoes a write the same call made earlier (Reserve from Pool's resource-unavailable, a place hold refused after the allocate took its slot, which moving to the answers line would commit with the allocate).
+
+### A family for every action: Refusal
+
+Which refusal an action answers when more than one applies to one call is the same question for every specification, so it is answered once, here, and holds for every specification as the Read rules do: a refuses line lists an action's refusals in the order they answer, and a specification that relies on the order cites it by its label, `Execution Contract Refusal 1`, and does not restate it. Twenty-two specifications once stated an order for themselves: twelve as a declared term listing an action's refusal rules earliest first, beside a rule that the action evaluates no rule of the order before every earlier one has answered no refusal, each written by the Final Critique that cured a pair of refusals firing together on one call, and the rest as rules answering one refusal only where another does not apply. Five atoms once narrowed a rule banning a refusal to the ground the rule meant, each in the Final Critique that cured it; Refusal 1's second sentence now reads every such rule that way.
+
+**Refusal 1: The refusal listed first answers.** Where more than one refusal applies to one call of an action, the action answers the one listed first on its refuses line, and a rule obliging a refusal listed later holds only for a call to which no refusal listed before it applies. A refusal applies to a call where a rule of the action's specification obliges the action to answer it on that call, and not where a rule of the specification keeps the action from answering it there, which a rule does only where it names that refusal or the ground the refusal answers on, so a rule that bans refusing and names neither keeps the action from no refusal; that is how a specification states an order a fixed line cannot express, such as one refusal answering ahead of another for one input and after it for the rest. A failed read still answers state-unavailable ahead of every refusal the read would have decided (Read 1).
+
+### A family for every read: Query
+
+What a read's query asks for is the same for every specification whose read takes one, so it is written once, here, and holds for every specification as the Read rules do: a specification that relies on one of these rules cites it by its label, `Execution Contract Query 1`, and does not restate it. A specification declares its read's filter axes, which of them carry a range, and what its read answers to a malformed query; these rules say what a filter carries and which records a query matches. A specification whose read asks otherwise states its own rule, which stands in place of these where the two differ, as Event Log's range carrying no upper end does. Five specifications once stated a range's ends for themselves, four of them in the Final Critique that cured a query two builds answered with two sets, and seven left them unsaid.
+
+**Query 1: A filter carries one value of its axis, or a range.** A filter on an axis its specification declares to carry a range carries a range, whose filter values are its start and its end, each a value of the axis; a filter on any other axis carries one value of the axis. A filter carrying anything else is malformed, a range missing its start or its end among them, and so is the query that carries it.
+
+**Query 2: A range holds both its ends.** A value lies inside a range where it does not precede the range's start and the range's end does not precede it, so a value at either end lies inside the range.
+
+**Query 3: A record without the filtered value fails the filter.** A record matches a filter where the record's value on the filter's axis is the filter's value or, for a range, lies inside the range. A record carrying no value on the axis fails the filter: a pending approval step, which carries no decision instant, fails every range on decision instant.
+
+**Query 4: Filters combine as all-of.** A record matches a query where it matches every filter the query carries, so a query carrying no filter matches every record.
+
+**Query 5: A filter's value is held to the cap and is not blank.** A filter on an axis whose values are strings carries a value that is not blank and does not exceed the cap on that axis's length (Input 2), counted on the value as the filter carries it; a filter carrying a blank value, a blank id among them, or a value over the cap is malformed (Query 1), and so is the query that carries it, and the read answers it with the refusal its specification answers a malformed query with. A specification that relies on this cites Query 5 by its label; it does not restate it, and one that states its own answer for a filter value keeps it in place of this one.
+
+### A family for every write: Input
+
+What a write's input carries is the same for every specification whose writing action takes one, so it is written once, here, and holds for every specification as the Query rules do for a read's filter: a specification that relies on one of these rules cites it by its label, `Execution Contract Input 1`, and does not restate it. A specification declares each input's type — an instant, a whole count, a window length — and the refusal each writing action answers a malformed input with. Six specifications once held a supplied input to its type by a rule of their own, each in the Final Critique that found one build refusing a value outside the type where another recorded it. Nineteen specifications once took one of three postures toward the bound on an input, a cap the specification declared, a cap the deployment had to supply, or none; Input 2 gives all nineteen one.
+
+**Input 1: An input carries a value of its declared type.** An input a call of a writing action supplies carries a value of the type its specification declares for that input, as Query 1 holds a filter to its axis. A call whose input carries a value of another type is malformed, and the action answers the refusal its specification answers a malformed input with. An input the call leaves blank carries no value of another type: what a blank input answers or resolves to is its specification's, and a blank instant's is Logic confinement 12's.
+
+**Input 2: A bound is a default cap.** Where a specification bounds an input, as the length of a string in Unicode code points, or bounds what a call can make a record hold, as the count of lines on a cart, it states the bound as a cap with a default value, and a deployment may override the default by declaring its own cap. A cap is never left unstated, and a deployment never has to supply one. A cap is counted on the value as the call carries it, before any canonicalization at the seam (Logic confinement 13), so a value over the cap is over it whatever its canonical form measures. A call that would exceed a cap is malformed (Input 1), and every action answers an input over a cap with invalid-request, the refusal the corpus's specifications give a malformed input (Input 1); a deployment MUST NOT declare a cap that a value a record of the specification already holds EXCEEDS, counted on the value as the record holds it (Logic confinement 13), so no override leaves an existing record unaddressable or unreachable by the actions that name it; a deployment MUST NOT declare a cap of zero on the length of a string, which refuses every string a caller supplies and leaves no id the host can allocate; the host allocates an id that is not blank and does not exceed the cap, counted on the id as the host allocates it, since an action or a read that names a record by its id refuses one outside either end (Query 5) and an id outside either end leaves its record unaddressable; no specification owes a restatement of the measure, of the refusal, of these floors or of the allocated id's bounds, and one that states its own answer for an input keeps it in place of this one.
+
+**Input 3: An input with no declared type is a string.** Where a specification declares no type for an input a call of its writing action supplies, and no rule or declaration of the specification makes the input an operand (GRACE-lang Term operand), compares it with EXCEEDS or PRECEDES, or declares it opaque content of any value, the input carries a string, and a call whose input carries anything else is malformed (Input 1). An action answers a malformed input, by its declared type or by this rule, with invalid-request, the refusal Input 2 names, unless the specification states its own answer for that input, which stands in place of this one, as a terminal transition answering not-known for a malformed id does. An instant a call supplies, which a rule compares with EXCEEDS or PRECEDES and so this rule does not default, is held to the type instant (Input 1): a value that is not an instant is malformed and is answered with invalid-request, the refusal Input 2 names, unless the specification states its own answer for that instant, and no specification owes a rule restating it. An input this rule does not reach owes its type to its specification, as Input 1 says. A specification that relies on this cites Input 3 by its label; it does not restate it. Nine specifications once declared such an input's type and named its refusal for themselves, each in the Final Critique that found nothing but a reader's inference holding the input to a type.
+
+**Input 4: An admitted call records the required inputs its record keeps.** Where a call of a writing action supplies an input its signature does not mark optional, and the specification ties that input to a field a rule makes the action's record carry, the input and the field sharing a name or a term saying the record keeps the input as that field, an action that admits the call sets the field to the input's value as the call carries it, a reference in the canonical form Logic confinement 13 gives it, unless a rule of the specification sets the field otherwise. A specification that relies on this cites Input 4 by its label; it does not restate it. Nine specifications once recorded such inputs by Operation rules of their own, each in the Final Critique that found a build recording a value of its own choosing while obeying every rule (GRACE-lang Hard invariant 20).
+
+---
+
+
+## Data layer contract
+
+The schema is derived from the SM definition. Specifically:
+- One table per atom (or per distinct record type where an atom's spec names several). A composition-carried derived index (the section titled Composition state) may compile to a table, but a rebuildable one — droppable and regenerated from constituent records by its named rebuild procedure, never migrated as truth. A composition-carried table that *cannot* be regenerated that way is the schema-level symptom of a not-yet-extracted atom (Idempotent Reservation's `token_results` is the worked case — *extraction-pending* per the section titled Composition state).
+- One column per field named in the atom's State section.
+- One enum (or constrained varchar) per S for the status column.
+- Timestamp columns are nullable where the atom's spec says the field is absent until a specific transition.
+- No column exists in the schema that does not correspond to a field named in the atom's spec.
+
+**Permitted tooling.** Explicit parameterized SQL; a query builder that compiles to visible, predictable SQL (Drizzle in query-builder mode). Schema declarations (table and column definitions). Explicit migration scripts.
+
+**Not permitted.** ORM relations that trigger implicit joins or lazy loading. Active Record patterns that embed guard or projection logic in model objects. Any tool that generates SQL at runtime through reflection, magic method dispatch, or relationship traversal.
+
+The `next_sequence_number` counter in Event Log requires atomic increment-and-append semantics — the counter increment and the event record write are a single Step 3 operation committed atomically. This is not two writes; it is a database operation that atomically increments the counter and inserts the row in one transaction.
+
+That atomicity, and the total order it protects (Event Log Invariant 3; the operational clause *"appends never fail for ordering or contention reasons — the underlying implementation must serialize them"*), is a **runtime serialization guarantee**, not portable code. The contract names the obligation; each target supplies the mechanism. Observed across four reference renders of the same Event Log spec: SQLite's single-writer lock (the storage engine provides it for free), PostgreSQL's `pg_advisory_xact_lock` held for the transaction body, a Go process's `sync.Mutex`, and MongoDB's replica-set transaction with the unique chain-position index as fork guard and optimistic retry absorbing the conflict. One invariant, four mechanisms — a worked instance of the general rule that the runtime owns serialization while the spec owns the invariant. The mechanism is the non-portable seam; the clause it satisfies is canonical. Database 2 and Order 1 are the general form of that clause. (Renders: `demos/clinical-trial-portal`, `-next`, `-go`, `-mongo`; findings logged in `discoveries.md`, 2026-06-06 and 2026-06-07.)
+
+---
+
+## Error model
+
+Three failure classes, and one answer that never arrives. No others.
+
+**Guard failure.** G returns `typed_failure(reason)` in Step 2. The reason is one of the reasons named on the action's refuses line in the atom's Operations; where more than one applies, it is the one Refusal 1 picks. The database is unchanged. The caller receives the typed rejection. Guard failures are the normal operational outcome of preconditions not being met — they are not error conditions and must not be logged as errors. Every named rejection reason must be reachable by a conforming caller in a well-specified scenario.
+
+**Effect failure.** The database read fails (Step 1) or the database write fails (Step 3). These are infrastructure failures.
+- Step 1: the caller receives `state-unavailable`. No guard ran. No transition fired. Retry is safe.
+- Step 3: the caller receives `storage-failure`. The guard passed. The database write failed. The state is unchanged. Retry may be safe depending on the atom — but the caller must not assume the transition did not fire. Where partial execution is security-critical (Permissions `revoke`), the atom's spec says so explicitly.
+
+**Invariant violation.** An illegal state is produced that violates a member of I. This condition has three causes: a compiler bug (T was generated incorrectly), a spec violation (T was implemented in deviation from the spec), or a serialization failure (two concurrent transitions both passed their guards against the same `state_t` before either write committed). None of these is a recoverable caller error. The implementation must surface this as a fatal condition for investigation, not as a typed rejection the caller handles.
+
+**Error model 1: A lost answer is none of the three.** An action's answer can fail to reach its caller: the transport loses it, or the database never answers the action's write and the action, unable to tell whether the write committed, has no answer to give. The caller then cannot tell whether the call landed, and what it holds is no refusal, no `state-unavailable` and no `storage-failure`. A retry is a second call, which the action admits or refuses on the records as the retry finds them (Read 4): where the first call landed, the retry meets what that call left, a refusal the landing causes or, where the action admits the call again, a second effect beside the first. What the caller does next is the composing pattern's, unless the specification states it, as one does that names the record its caller reads before retrying. A specification that relies on this rule cites it by its label, `Execution Contract Error model 1`, and does not restate it. Ten specifications once stated it for themselves, eight of them in an Indeterminate outcome family.
+
+---
+
+## Testing model
+
+Testing in Grace Commons is not a separate layer. It is a second view over the same state machine semantics — state machine replays with assertions over projection functions, compiled from the spec rather than authored independently. The Examples section of every atom is already a test specification; the Regulated adversarial scenarios are already acceptance tests; the refuses lines and the rules that answer them are already guard test specifications. The compiler emits the test suite; there is no test authoring step.
+
+**The core rule.** Every test is a declared traversal of the state machine graph. Not unit tests, integration tests, or mocks as separate concepts — just state transitions and assertions over projections. Same pipeline. Different inputs.
+
+---
+
+### Test types
+
+**Guard test.** Exercises G directly — no database, no pipeline, no IO. Inputs: a known `state_t`, event parameters, and a fixed `clock_t`. Execution: call `G(state_t, event, params, clock_t)` as a pure function. Temporal guards (future-timestamp bounds, ordering checks against stored timestamps) are exercised by varying the fixed `clock_t`; the test stays deterministic because the clock is an input, not a read. Assertion: result is the expected `pass` or `typed_failure(reason)`. One guard test per reason named on a refuses line in the atom's Operations, plus one for the pass case per transition. These are the fastest tests in the suite and the ones that cover the entire guard logic surface in isolation.
+
+**Transition test.** Runs the full four-step pipeline against a real database seeded to a known state. Inputs: seed data in the database (derived from the atom's Examples section) + event + params. Execution: full pipeline (Read → Guard → Transition+Write → Project). Assertions: (a) R returns the expected output; (b) Q returns results consistent with the new state; (c) single-state invariants hold over `state_{t+1}`. One transition test per named transition in the atom's State section, covering both the happy path and each guard-failure path.
+
+**Sequence test.** Runs multiple pipeline steps in sequence from a known starting state. Inputs: starting state in the database + ordered event sequence. Execution: N pipeline runs, one per event. Assertions: (a) intermediate states match expected; (b) final state matches expected; (c) sequence-safety invariants hold over the full history. Compiles from the atom's Examples (walkthrough scenarios) and from the sequence-safety invariant class. The rejection-path example in Personal Todo (eleven events, four rejection reasons, one sequence) is a sequence test.
+
+**Composition test.** Runs a composition action — which sequences constituent SM transitions through the wiring layer — against every constituent's records seeded to a known joint state. Assertions: (a) every constituent's records are in the expected state after the action; (b) application-level invariants hold over the joint record set. Compiles from the composition's action wiring and application-level invariants. One composition test per named composition action, plus tests for cascade behaviors (cascade-on-delete in Shared Todo, storage-failure cascade-abort).
+
+**Acceptance test (regulated atoms only).** Seeds the record set to a state matching a regulated adversarial scenario, runs the Generation acceptance checks as read queries, and asserts the expected results. Compiles from the Generation acceptance section (the check queries) and the Regulated adversarial scenarios (the seed data and expected outcomes). These tests are the machine-executable form of "what an external auditor can verify from the records alone."
+
+---
+
+### The seeding rule — not mocking
+
+Tests that need a database do not use mocks. They use a real in-memory database (or a test transaction rolled back after each test) seeded with concrete data derived from the atom's Examples section. The distinction matters: mocks replace a dependency with a fake implementation and introduce divergence between what the test exercises and what production executes. Seeding populates the real implementation — the same database, the same SQL, the same schema — with known state before the test runs. If a transition test passes against a seeded in-memory database, it will pass against a production database given identical initial state. This is the determinism guarantee; mocking destroys it.
+
+The seed data is not authored separately. It is derived from the atom's Examples section — the concrete values the spec already provides. Personal Todo's rejection-path example seeds: one unit in Pending with description "buy milk." The test sequence follows the example exactly. If the spec changes the example, the seed data changes with it; there is no diverging test fixture to maintain.
+
+---
+
+### Spec section to test type mapping
+
+| Spec section | Test type compiled |
+|---|---|
+| Operations (each reason on a refuses line) | Guard test — one per named reason, plus pass case |
+| Operations (each rule that records or changes a unit, happy path) | Transition test — one per named transition |
+| Invariants (single-state class) | Post-write assertions within each Transition test |
+| Invariants (sequence-safety class) | Sequence tests targeting each invariant's boundary conditions |
+| Examples (happy-path scenarios) | Seed data + expected outcomes for Transition and Sequence tests |
+| Examples (rejection-path scenarios) | Seed data + expected guard-failure outcomes |
+| Composition wiring (each action) | Composition test — one per named composition action |
+| Composition-level invariants | Post-wiring assertions within each Composition test |
+| Generation acceptance (regulated) | Acceptance test check queries |
+| Regulated adversarial scenarios | Acceptance test seed data + expected query results |
+
+Every row in the table is a compilation rule. No test is authored that does not correspond to a row. No spec section exists that does not compile to at least one test type. The test suite is a complete projection of the spec — and if the spec is complete (all three pressure-testing passes clean), the test suite is complete by construction.
+
+---
+
+### What this removes
+
+There is no separate testing infrastructure. There is no mocking framework. There is no test-doubles ontology. There is no CI configuration that encodes test semantics not present in the spec. The test runner executes the same pipeline the production runtime executes. The only difference between a test run and a production run is the database — in-memory and seeded vs. durable and production.
+
+There is also no divergence path. A test cannot encode behavior the spec does not declare, because the test is compiled from the spec. A spec change propagates to the test suite at compile time, not at the next test-authoring session. The spec is the single source of truth for both production behavior and test expectations.
+
+---
+
+## Conformance
+
+A runtime implementation of a Grace Commons atom is conforming when all of the following hold:
+
+- **Conformance 1:** Every transition executes the four-step pipeline in order (Read → Guard → Transition+Write → Project) with no additional steps and no reordering.
+- **Conformance 2:** `clock_t` is read as a direct effect at the top of Step 2 and injected into both G and T as a parameter; `id_t` is read as a direct effect at Step 3 and injected into T. Neither G nor T calls the clock or entropy source internally.
+- **Conformance 3:** No persistent state mutation occurs outside Step 3's `database.write`.
+- **Conformance 4:** Every rejection reason named on a refuses line in the atom's Operations is reachable and typed. No rejection reason exists that is not named in the spec or in this contract.
+- **Conformance 5:** Every named invariant in I holds over the record set after any valid sequence of transitions, including sequences interleaved by other conforming callers under the implementation's serialization guarantees.
+- **Conformance 6:** Q returns results consistent with the record set produced by the state machine's transition history. A query that disagrees with the durable record set is a conformance failure.
+- **Conformance 7:** For regulated atoms: the Generation acceptance checks pass against the record set produced by any conforming run.
+
+**Conformance 8:** A composition is conforming when all of its constituents — atoms and substrate compositions, recursively (the section titled Substrate composition invocation) — are conforming and the application-level invariants hold over the joint record set produced by the wiring layer. A composing layer inherits a constituent's guarantees by this condition and does not restate them.
+
+**Conformance 9:** Which composing patterns a deployment wired in is an external check, read from the deployment's own declaration, and never a conformance check over the records, since no record carries the wiring. Twelve atoms once carried such a check among their external checks, each written by the Final Critique that cured it. Every deployment declares which composing patterns it wired in, for every specification it runs, declaring none where it wired none; a specification that relies on the declaration cites Conformance 9 by its label and does not restate it, as nine specifications did as a Capability requirement and seventeen write it as a Composition note.
+
+The A-stack reference implementation is a conforming implementation. It is not the only conforming implementation. Any runtime that satisfies Conformance 1 through 7 against the Grace Commons atom specs is conforming, regardless of language, database, or UI technology.
+
+---
+
+## A-stack reference implementation
+
+A-stack is the reference runtime. It is the minimal conforming implementation — the smallest stack that exercises the full contract against real atoms without introducing abstractions the contract does not require.
+
+| Layer | Technology | Rule |
+|---|---|---|
+| Runtime | Deno | Permission-explicit; TypeScript-first; no build ceremony |
+| UI | JSX → pure functions | `(props: ProjectionResult) => JSX.Element`; no framework lifecycle |
+| Data | PostgreSQL | Explicit parameterized SQL or Drizzle query-builder mode only |
+| State machines | TypeScript discriminated unions | One union type per S; one typed function per event in E |
+| Pipeline | Explicit per-transition | Steps 1–4 written out explicitly; no framework interpolates them |
+
+The first two A-stack examples, in dependency order: **Personal Todo** (simplest atom — four actions, no regulated sections, covers the full pipeline with the description policy as a PF normalization example) and **Idempotent Reservation** (first composition — demonstrates multi-write atomicity in `place_hold`, the exactly-once emergent invariant, and the *extraction-pending* `token_results` records that the section titled Composition state classifies).
+
+---
+
+*The Execution Contract is a methodology document. It is subject to the same three-pass review as any Grace Commons pattern: structural completeness (all nine MUSE nodes have a corresponding contract clause), conceptual independence (no primitive absorbs another primitive's responsibility), and adversarial scrutiny (no hidden runtime behavior exists that the contract does not name). The contract itself is pressure-testable. If a conforming implementation exhibits behavior this document does not predict, that is a Pass 3 finding against the contract.*

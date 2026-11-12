@@ -1,0 +1,1706 @@
+{
+ "actor-identity": {
+  "composed_by": [
+   "attributed-permissions-admin",
+   "audit-trail",
+   "authenticated-actor",
+   "reserve-from-pool"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 33
+  },
+  "regulated_by": [
+   "attributed-permissions-admin",
+   "audit-trail",
+   "authenticated-actor",
+   "reserve-from-pool"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "Basel III",
+   "COSO/COBIT",
+   "DoD 5015",
+   "FINRA",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "NIST 800-57",
+   "NIST 800-63",
+   "NIST 800-92",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 16 \u2014 2026-11-06 at ad732c0",
+  "title": "Actor Identity"
+ },
+ "actor-suspension": {
+  "composes": [
+   "permissions",
+   "session",
+   "credential"
+  ],
+  "grounded": true,
+  "invariants": 5,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 30
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-207",
+   "NIST 800-53",
+   "NIST 800-63",
+   "OWASP ASVS",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 9 \u2014 2026-11-05 at 917cc95",
+  "substrates": [
+   "audit-trail"
+  ],
+  "title": "Actor Suspension"
+ },
+ "approval-step": {
+  "composed_by": [
+   "execute-gated-workflow",
+   "multi-party-approval"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 10,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 13
+  },
+  "regulated_by": [
+   "execute-gated-workflow",
+   "multi-party-approval"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "PCI DSS",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 15 \u2014 2026-11-05 at 00843d2",
+  "title": "Approval Step"
+ },
+ "assignment": {
+  "composed_by": [
+   "execute-gated-workflow",
+   "multi-party-approval",
+   "shared-todo"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 10,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 12
+  },
+  "regulated_by": [
+   "execute-gated-workflow",
+   "multi-party-approval",
+   "shared-todo"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "PCI DSS",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 7 \u2014 2026-10-26 at 207f9b2",
+  "title": "Assignment"
+ },
+ "attributed-permissions-admin": {
+  "composes": [
+   "permissions",
+   "actor-identity"
+  ],
+  "grounded": true,
+  "invariants": 9,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 38
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 10 \u2014 2026-11-05 at a6a6920",
+  "substrates": [],
+  "title": "Attributed Permissions Admin"
+ },
+ "audit-trail": {
+  "composes": [
+   "event-log",
+   "actor-identity",
+   "retention-window",
+   "tamper-evidence"
+  ],
+  "grounded": true,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 20
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "Basel III",
+   "COSO/COBIT",
+   "DoD 5015",
+   "FINRA",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-92",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 60 \u2014 2026-11-06 at 21ece33",
+  "substrate_of": [
+   "actor-suspension",
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "defensible-retention",
+   "execute-gated-workflow",
+   "external-onboarding",
+   "immutable-ledger",
+   "login",
+   "multi-party-approval",
+   "privileged-access-provisioning",
+   "propagate-consent-revocation-downstream",
+   "recoverable-invocation",
+   "verified-repair"
+  ],
+  "substrates": [],
+  "title": "Audit Trail"
+ },
+ "authenticated-actor": {
+  "composes": [
+   "credential",
+   "actor-identity"
+  ],
+  "grounded": true,
+  "invariants": 4,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 18
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-57",
+   "NIST 800-63",
+   "PCI DSS",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 10 \u2014 2026-11-06 at 368ce1f",
+  "substrates": [],
+  "title": "Authenticated Actor"
+ },
+ "calendar-time": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 4,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 12
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 1 \u2014 2026-11-08 at 4b0bd47",
+  "title": "Calendar Time"
+ },
+ "capability": {
+  "composed_by": [
+   "capability-backed-sharing",
+   "privileged-access-provisioning"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 13,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 24
+  },
+  "regulated_by": [
+   "capability-backed-sharing",
+   "privileged-access-provisioning"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at 582c382",
+  "title": "Capability"
+ },
+ "capability-backed-sharing": {
+  "composes": [
+   "capability",
+   "selective-disclosure"
+  ],
+  "grounded": true,
+  "invariants": 5,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 29
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 16 \u2014 2026-11-11 at 6db7319",
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "Capability-Backed Sharing"
+ },
+ "capacity-constraint-enforcement": {
+  "composed_by": [
+   "reserve-from-pool"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 14,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 16
+  },
+  "regulated_by": [
+   "reserve-from-pool"
+  ],
+  "security": false,
+  "standards": [
+   "PCI DSS"
+  ],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at 5506e77",
+  "title": "Capacity Constraint Enforcement"
+ },
+ "cart": {
+  "composed_by": [
+   "shared-cart"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 6,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 23
+  },
+  "regulated_by": [
+   "shared-cart"
+  ],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 6 \u2014 2026-11-04 at cd6400b",
+  "title": "Cart"
+ },
+ "chain-of-custody": {
+  "composes": [
+   "provenance"
+  ],
+  "grounded": true,
+  "invariants": 6,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 21
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 23 \u2014 2026-11-11 at 42f1cff",
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "Chain of Custody"
+ },
+ "compensable-workflow": {
+  "composes": [
+   "state-machine",
+   "event-log"
+  ],
+  "grounded": true,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 17
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "ISO 27001",
+   "NIST 800-92"
+  ],
+  "status": "grounded on Final Critique 8 \u2014 2026-11-06 at ef1f25a",
+  "substrates": [],
+  "title": "Compensable Workflow"
+ },
+ "condition-register": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 5,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 24
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 4 \u2014 2026-11-04 at 7f522a9",
+  "title": "Condition Register"
+ },
+ "consent": {
+  "composed_by": [
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 10,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 30
+  },
+  "regulated_by": [
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights"
+  ],
+  "security": false,
+  "standards": [
+   "FRCP 37(e)",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 21 \u2014 2026-11-05 at 4f85e1c",
+  "title": "Consent"
+ },
+ "credential": {
+  "composed_by": [
+   "actor-suspension",
+   "authenticated-actor",
+   "external-onboarding",
+   "login",
+   "privileged-access-provisioning"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 12,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 19
+  },
+  "regulated_by": [
+   "actor-suspension",
+   "authenticated-actor",
+   "external-onboarding",
+   "login",
+   "privileged-access-provisioning"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "FATF",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-207",
+   "NIST 800-53",
+   "NIST 800-57",
+   "NIST 800-63",
+   "OWASP ASVS",
+   "PCI DSS",
+   "SCIM",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 21 \u2014 2026-10-29 at cf02362",
+  "title": "Credential"
+ },
+ "customer-onboarding": {
+  "composes": [
+   "party-identity",
+   "retention-window"
+  ],
+  "grounded": true,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 23
+  },
+  "regulated": true,
+  "standards": [
+   "AMLD",
+   "BSA/AML",
+   "FATF",
+   "FinCEN",
+   "GDPR",
+   "HIPAA"
+  ],
+  "status": "grounded on Final Critique 8 \u2014 2026-11-11 at 1537770",
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "Customer Onboarding"
+ },
+ "defensible-retention": {
+  "composes": [
+   "legal-hold",
+   "retention-window"
+  ],
+  "grounded": true,
+  "invariants": 13,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 21
+  },
+  "regulated": true,
+  "standards": [
+   "FRCP 37(e)",
+   "GDPR",
+   "HIPAA",
+   "ISO 15489",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 18 \u2014 2026-11-05 at 4e61dc9",
+  "substrate_of": [
+   "resolve-a-persons-data-rights"
+  ],
+  "substrates": [
+   "audit-trail"
+  ],
+  "title": "Defensible Retention"
+ },
+ "duplicate-prevention": {
+  "composed_by": [
+   "idempotent-reservation",
+   "reserve-from-pool"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 3,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 9
+  },
+  "regulated_by": [
+   "idempotent-reservation",
+   "reserve-from-pool"
+  ],
+  "security": false,
+  "standards": [
+   "Basel III",
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 7 \u2014 2026-10-28 at 7c6ea61",
+  "title": "Duplicate Prevention"
+ },
+ "erasure-tombstone": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 5,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 29
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 2 \u2014 2026-11-03 at aeea14e",
+  "title": "Erasure Tombstone"
+ },
+ "event-log": {
+  "composed_by": [
+   "audit-trail",
+   "compensable-workflow",
+   "preference-aware-notification-fanout",
+   "reserve-from-pool",
+   "shared-cart"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 7,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 14
+  },
+  "regulated_by": [
+   "audit-trail",
+   "compensable-workflow",
+   "preference-aware-notification-fanout",
+   "reserve-from-pool",
+   "shared-cart"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "Basel III",
+   "COSO/COBIT",
+   "DoD 5015",
+   "FINRA",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-92",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 13 \u2014 2026-10-25 at bae1f12",
+  "title": "Event Log"
+ },
+ "execute-gated-workflow": {
+  "composes": [
+   "state-machine",
+   "approval-step",
+   "permissions",
+   "assignment"
+  ],
+  "grounded": true,
+  "invariants": 7,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 26
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "HIPAA",
+   "ISO 27001",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 15 \u2014 2026-11-05 at 776c44e",
+  "substrates": [
+   "audit-trail"
+  ],
+  "title": "Execute Gated Workflow"
+ },
+ "external-onboarding": {
+  "composes": [
+   "invitation",
+   "credential",
+   "party-identity"
+  ],
+  "grounded": true,
+  "invariants": 5,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 23
+  },
+  "regulated": true,
+  "standards": [
+   "FATF",
+   "GDPR",
+   "HIPAA",
+   "NIST 800-63",
+   "SCIM",
+   "SOC 2"
+  ],
+  "status": "grounded on Final Critique 19 \u2014 2026-11-10 at 66da7e8",
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "External Onboarding"
+ },
+ "gift-card": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 4,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 28
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 3 \u2014 2026-11-06 at 368ce1f",
+  "title": "Gift Card"
+ },
+ "idempotent-reservation": {
+  "composes": [
+   "provisional-commitment",
+   "duplicate-prevention"
+  ],
+  "grounded": true,
+  "invariants": 6,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 27
+  },
+  "regulated": true,
+  "standards": [
+   "Basel III",
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 7 \u2014 2026-11-05 at 63c13eb",
+  "substrates": [],
+  "title": "Idempotent Reservation"
+ },
+ "immutable-ledger": {
+  "composes": [
+   "selective-disclosure"
+  ],
+  "grounded": true,
+  "invariants": 5,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 19
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 20 \u2014 2026-11-06 at 13edae6",
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "Immutable Ledger with Selective Disclosure"
+ },
+ "invitation": {
+  "composed_by": [
+   "external-onboarding"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 11,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 17
+  },
+  "regulated_by": [
+   "external-onboarding"
+  ],
+  "security": true,
+  "standards": [
+   "FATF",
+   "GDPR",
+   "HIPAA",
+   "NIST 800-63",
+   "SCIM",
+   "SOC 2"
+  ],
+  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at cd9d6f3",
+  "title": "Invitation"
+ },
+ "lease": {
+  "composed_by": [
+   "recoverable-invocation"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 6,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 14
+  },
+  "regulated_by": [
+   "recoverable-invocation"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 4 \u2014 2026-10-04 at 46804b7",
+  "title": "Lease"
+ },
+ "legal-hold": {
+  "composed_by": [
+   "defensible-retention"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 8,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 18
+  },
+  "regulated_by": [
+   "defensible-retention"
+  ],
+  "security": false,
+  "standards": [
+   "FRCP 37(e)",
+   "GDPR",
+   "HIPAA",
+   "ISO 15489",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 8 \u2014 2026-10-24 at c39a73f",
+  "title": "Legal Hold"
+ },
+ "login": {
+  "composes": [
+   "credential",
+   "session"
+  ],
+  "grounded": true,
+  "invariants": 6,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 18
+  },
+  "regulated": true,
+  "standards": [
+   "GDPR",
+   "HIPAA",
+   "NIST 800-53",
+   "NIST 800-63",
+   "OWASP ASVS",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at efa2db9",
+  "substrates": [
+   "audit-trail"
+  ],
+  "title": "Login"
+ },
+ "medication-order": {
+  "composed_by": [],
+  "domain": "healthcare",
+  "grounded": true,
+  "invariants": 14,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 20
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 7 \u2014 2026-11-05 at ec26ba5",
+  "title": "Medication Order"
+ },
+ "message-preference": {
+  "composed_by": [
+   "preference-aware-notification-fanout"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 10,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 23
+  },
+  "regulated_by": [
+   "preference-aware-notification-fanout"
+  ],
+  "security": false,
+  "standards": [
+   "GDPR"
+  ],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-04 at cef41e2",
+  "title": "Message Preference"
+ },
+ "multi-party-approval": {
+  "composes": [
+   "approval-step",
+   "permissions",
+   "assignment"
+  ],
+  "grounded": true,
+  "invariants": 9,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 28
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "NIST 800-53",
+   "PCI DSS",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 21 \u2014 2026-11-11 at 1537770",
+  "substrate_of": [
+   "privileged-access-provisioning"
+  ],
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "Multi-Party Approval"
+ },
+ "notification": {
+  "composed_by": [
+   "notification-fanout",
+   "preference-aware-notification-fanout"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 35
+  },
+  "regulated_by": [
+   "notification-fanout",
+   "preference-aware-notification-fanout"
+  ],
+  "security": false,
+  "standards": [
+   "GDPR"
+  ],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 917cc95",
+  "title": "Notification"
+ },
+ "notification-fanout": {
+  "composes": [
+   "subscription",
+   "notification"
+  ],
+  "grounded": true,
+  "invariants": 6,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 26
+  },
+  "regulated": true,
+  "standards": [],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 63c13eb",
+  "substrates": [],
+  "title": "Notification Fanout"
+ },
+ "observation": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 15
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 8 \u2014 2026-11-05 at 917cc95",
+  "title": "Observation"
+ },
+ "owed-record": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 5,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 27
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 2 \u2014 2026-11-03 at aeea14e",
+  "title": "Owed Record"
+ },
+ "party-identity": {
+  "composed_by": [
+   "customer-onboarding",
+   "external-onboarding"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 18
+  },
+  "regulated_by": [
+   "customer-onboarding",
+   "external-onboarding"
+  ],
+  "security": true,
+  "standards": [
+   "AMLD",
+   "BSA/AML",
+   "FATF",
+   "FinCEN",
+   "GDPR",
+   "HIPAA",
+   "NIST 800-63",
+   "SCIM",
+   "SOC 2"
+  ],
+  "status": "grounded on Final Critique 12 \u2014 2026-11-05 at 29399d0",
+  "title": "Party Identity"
+ },
+ "permissions": {
+  "composed_by": [
+   "actor-suspension",
+   "attributed-permissions-admin",
+   "execute-gated-workflow",
+   "multi-party-approval",
+   "privileged-access-provisioning",
+   "propagate-consent-revocation-downstream",
+   "session-gated-authorization",
+   "shared-cart",
+   "shared-todo"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 10,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 33
+  },
+  "regulated_by": [
+   "actor-suspension",
+   "attributed-permissions-admin",
+   "execute-gated-workflow",
+   "multi-party-approval",
+   "privileged-access-provisioning",
+   "propagate-consent-revocation-downstream",
+   "session-gated-authorization",
+   "shared-cart",
+   "shared-todo"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-207",
+   "NIST 800-53",
+   "NIST 800-63",
+   "OWASP ASVS",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at 582c382",
+  "title": "Permissions"
+ },
+ "personal-todo": {
+  "composed_by": [
+   "shared-todo"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 8,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 29
+  },
+  "regulated_by": [
+   "shared-todo"
+  ],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 8 \u2014 2026-11-04 at 17878a4",
+  "title": "Personal Todo"
+ },
+ "preference-aware-notification-fanout": {
+  "composes": [
+   "subscription",
+   "notification",
+   "message-preference",
+   "event-log"
+  ],
+  "grounded": true,
+  "invariants": 9,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 15
+  },
+  "regulated": true,
+  "standards": [
+   "GDPR"
+  ],
+  "status": "grounded on Final Critique 18 \u2014 2026-11-06 at a342d5e",
+  "substrates": [],
+  "title": "Preference-Aware Notification Fanout"
+ },
+ "privileged-access-provisioning": {
+  "composes": [
+   "credential",
+   "session",
+   "permissions",
+   "capability"
+  ],
+  "grounded": true,
+  "invariants": 10,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 18
+  },
+  "regulated": true,
+  "standards": [
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-11 at 30dbd60",
+  "substrates": [
+   "multi-party-approval",
+   "audit-trail"
+  ],
+  "title": "Privileged Access Provisioning"
+ },
+ "propagate-consent-revocation-downstream": {
+  "composes": [
+   "consent",
+   "permissions",
+   "retention-window"
+  ],
+  "grounded": true,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 15
+  },
+  "regulated": true,
+  "standards": [
+   "GDPR",
+   "HIPAA"
+  ],
+  "status": "grounded on Final Critique 24 \u2014 2026-11-11 at 79168ca",
+  "substrates": [
+   "audit-trail",
+   "recoverable-invocation"
+  ],
+  "title": "Propagate Consent Revocation Downstream"
+ },
+ "provenance": {
+  "composed_by": [
+   "chain-of-custody"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 19
+  },
+  "regulated_by": [
+   "chain-of-custody"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 13 \u2014 2026-11-03 at e0a85af",
+  "title": "Provenance"
+ },
+ "provisional-commitment": {
+  "composed_by": [
+   "idempotent-reservation",
+   "reserve-from-pool"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 8,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 17
+  },
+  "regulated_by": [
+   "idempotent-reservation",
+   "reserve-from-pool"
+  ],
+  "security": false,
+  "standards": [
+   "Basel III",
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 13 \u2014 2026-11-05 at 8adbf07",
+  "title": "Provisional Commitment"
+ },
+ "recoverable-invocation": {
+  "composes": [
+   "lease"
+  ],
+  "grounded": true,
+  "invariants": 9,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 27
+  },
+  "regulated": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 49 \u2014 2026-11-07 at 1451abf",
+  "substrate_of": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "verified-repair"
+  ],
+  "substrates": [
+   "audit-trail"
+  ],
+  "title": "Recoverable Invocation"
+ },
+ "recurrence": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 3,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 25
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 2 \u2014 2026-11-08 at 237cc22",
+  "title": "Recurrence"
+ },
+ "reserve-from-pool": {
+  "composes": [
+   "provisional-commitment",
+   "capacity-constraint-enforcement",
+   "duplicate-prevention",
+   "event-log",
+   "actor-identity"
+  ],
+  "grounded": true,
+  "invariants": 7,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 17
+  },
+  "regulated": true,
+  "standards": [
+   "PCI DSS"
+  ],
+  "status": "grounded on Final Critique 14 \u2014 2026-11-06 at a896453",
+  "substrates": [],
+  "title": "Reserve from Pool"
+ },
+ "resolve-a-persons-data-rights": {
+  "composes": [
+   "selective-disclosure",
+   "consent"
+  ],
+  "grounded": true,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 27
+  },
+  "regulated": true,
+  "standards": [
+   "FRCP 37(e)",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 2 \u2014 2026-11-05 at 776c44e",
+  "substrates": [
+   "defensible-retention"
+  ],
+  "title": "Resolve a Person's Data Rights"
+ },
+ "retention-window": {
+  "composed_by": [
+   "audit-trail",
+   "customer-onboarding",
+   "defensible-retention",
+   "propagate-consent-revocation-downstream"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 11,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 36
+  },
+  "regulated_by": [
+   "audit-trail",
+   "customer-onboarding",
+   "defensible-retention",
+   "propagate-consent-revocation-downstream"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "AMLD",
+   "BSA/AML",
+   "Basel III",
+   "COSO/COBIT",
+   "DoD 5015",
+   "FATF",
+   "FINRA",
+   "FRCP 37(e)",
+   "FinCEN",
+   "GDPR",
+   "HIPAA",
+   "ISO 15489",
+   "ISO 27001",
+   "NIST 800-92",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 13 \u2014 2026-10-24 at 142a72a",
+  "title": "Retention Window"
+ },
+ "selective-disclosure": {
+  "composed_by": [
+   "capability-backed-sharing",
+   "immutable-ledger",
+   "resolve-a-persons-data-rights"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 6,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 37
+  },
+  "regulated_by": [
+   "capability-backed-sharing",
+   "immutable-ledger",
+   "resolve-a-persons-data-rights"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "FRCP 37(e)",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 19 \u2014 2026-11-06 at 368ce1f",
+  "title": "Selective Disclosure"
+ },
+ "session": {
+  "composed_by": [
+   "actor-suspension",
+   "login",
+   "privileged-access-provisioning",
+   "session-gated-authorization"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 12,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 31
+  },
+  "regulated_by": [
+   "actor-suspension",
+   "login",
+   "privileged-access-provisioning",
+   "session-gated-authorization"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-207",
+   "NIST 800-53",
+   "NIST 800-63",
+   "OWASP ASVS",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 19 \u2014 2026-11-04 at 260b6c6",
+  "title": "Session"
+ },
+ "session-gated-authorization": {
+  "composes": [
+   "session",
+   "permissions"
+  ],
+  "grounded": true,
+  "invariants": 4,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 18
+  },
+  "regulated": true,
+  "standards": [
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "NIST 800-63",
+   "OWASP ASVS",
+   "PCI DSS"
+  ],
+  "status": "grounded on Final Critique 10 \u2014 2026-11-05 at 7f57305",
+  "substrates": [],
+  "title": "Session-Gated Authorization"
+ },
+ "shared-cart": {
+  "composes": [
+   "cart",
+   "permissions",
+   "event-log"
+  ],
+  "grounded": true,
+  "invariants": 4,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 30
+  },
+  "regulated": true,
+  "standards": [],
+  "status": "grounded on Final Critique 2 \u2014 2026-11-05 at b430bcf",
+  "substrates": [],
+  "title": "Shared Cart"
+ },
+ "shared-todo": {
+  "composes": [
+   "personal-todo",
+   "permissions",
+   "assignment"
+  ],
+  "grounded": true,
+  "invariants": 5,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 9
+  },
+  "regulated": true,
+  "standards": [],
+  "status": "grounded on Final Critique 11 \u2014 2026-11-05 at 227ba75",
+  "substrates": [],
+  "title": "Shared Todo"
+ },
+ "state-machine": {
+  "composed_by": [
+   "compensable-workflow",
+   "execute-gated-workflow"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 10,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 23
+  },
+  "regulated_by": [
+   "compensable-workflow",
+   "execute-gated-workflow"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-92",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "grounded on Final Critique 16 \u2014 2026-11-06 at ad732c0",
+  "title": "State Machine"
+ },
+ "subscription": {
+  "composed_by": [
+   "notification-fanout",
+   "preference-aware-notification-fanout"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 32
+  },
+  "regulated_by": [
+   "notification-fanout",
+   "preference-aware-notification-fanout"
+  ],
+  "security": false,
+  "standards": [
+   "GDPR"
+  ],
+  "status": "grounded on Final Critique 10 \u2014 2026-11-04 at c904915",
+  "title": "Subscription"
+ },
+ "tamper-evidence": {
+  "composed_by": [
+   "audit-trail"
+  ],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 31
+  },
+  "regulated_by": [
+   "audit-trail"
+  ],
+  "security": false,
+  "standards": [
+   "21 CFR Part 11",
+   "Basel III",
+   "COSO/COBIT",
+   "DoD 5015",
+   "FINRA",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-92",
+   "PCI DSS",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX",
+   "eIDAS"
+  ],
+  "status": "grounded on Final Critique 17 \u2014 2026-11-06 at 700b167",
+  "title": "Tamper Evidence"
+ },
+ "verified-repair": {
+  "composes": [],
+  "grounded": true,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 15
+  },
+  "regulated": true,
+  "standards": [],
+  "status": "grounded on Final Critique 27 \u2014 2026-11-07 at 93b19f5",
+  "substrates": [
+   "recoverable-invocation",
+   "audit-trail"
+  ],
+  "title": "Verified Repair"
+ }
+}

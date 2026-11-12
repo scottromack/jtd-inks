@@ -14,8 +14,8 @@ layout: table_wrappers
     Below md the sidebar stacks on top and its nav folds behind the menu button;
     from md it is a sticky column. The grid's divide draws the one seam.
   {%- endcomment -%}
-  <div class="grid min-h-dvh divide-y md:grid-cols-[14rem_minmax(0,1fr)] md:divide-x md:divide-y-0
-              [&_#site-nav:not(.nav-open)]:hidden md:[&_#site-nav]:block md:[&_#menu-button]:hidden
+  <div class="grid min-h-dvh md:grid-cols-[14rem_minmax(0,1fr)]
+              [&_#site-nav:not(.nav-open)]:hidden md:[&_#site-nav:not(.nav-open)]:block md:[&_#menu-button]:hidden
               [&_.site-footer]:hidden md:[&_.site-footer]:block md:[&_.mobile-site-footer]:hidden">
     {% if page.nav_enabled == true %}
       <div class="md:sticky md:top-0 md:h-dvh md:overflow-y-auto">{% include components/sidebar.html %}</div>

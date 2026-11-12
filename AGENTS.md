@@ -33,6 +33,10 @@ keep what works, swap what doesn't. Read this before touching a class.
 - Tables: a card `rounded-lg border overflow-hidden`; head row
   `border-b text-xs uppercase tracking-wide opacity-50`, cells `px-4 py-3 text-left font-medium`;
   body rows `border-b`, cells `px-4 py-3`.
+- Emphasis is elevation (Scott, 2026-11-12: "if you want something to stand out .raise it.
+  Material design."): what must stand out gets `raised`, not a new color, weight or size.
+  Raised: the sidebar nav, the header bar, the current nav link, tables, the pattern card.
+  Not raised: the search input (Scott, 2026-11-12).
 - Glass is only glass over texture (Scott, 2026-11-12): `raised` needs something behind
   it; over a plain page it reads as tint, border and sheen.
 - Texture: `assets/js/topology.js` (+ worker), Compos' flow-field canvas fixed behind everything (Scott 2026-11-12: fixed;
@@ -63,7 +67,9 @@ WHY toggles; search dropdown and overlay; config title Grace Commons.
 
 Next:
 1. JS shell: `addEventListener` and `fetch`; drop the IE shims.
-2. Check every page type against the real corpus (compositions, the method pages).
+2. Check every page type against the fixtures: real Grace pages (The Corpus > Atomic
+   Concepts > Gift Card, Cart; Conceptual Compositions > Shared Cart; The Method >
+   Execution Contract; Glossary), copied from grace-commons, which stays their home.
 3. Wire the fork into grace-commons (after the IA sweep decides the front doors).
 
 Keep: the nav tree includes, lunr search and its index, breadcrumbs, the

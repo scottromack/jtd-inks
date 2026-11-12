@@ -43,8 +43,9 @@
 /* Sources: the theme's templates and the docs pages; never the built site. */
 @source "../_includes";
 @source "../_layouts";
-@source "../docs";
-@source "../index.md";
+@source "../atoms";
+@source "../compositions";
+@source "../*.md";
 @source "../404.html";
 @source "../assets/js/topology.js";
 @source "../assets/js/just-the-docs.js";

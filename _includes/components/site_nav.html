@@ -10,6 +10,15 @@
     collection_key, collection_value, collection.
 {%- endcomment -%}
 
+{%- comment -%} jtd-inks: the current page's ancestors, walked up the parent chain, so the nav opens them. {%- endcomment -%}
+{%- assign nav_page_ancestors = "" | split: "" -%}
+{%- assign nav_up = page.parent -%}
+{%- for nav_step in (1..6) -%}
+  {%- if nav_up == nil -%}{%- break -%}{%- endif -%}
+  {%- assign nav_page_ancestors = nav_page_ancestors | push: nav_up -%}
+  {%- assign nav_up_page = site.html_pages | where: "title", nav_up | first -%}
+  {%- assign nav_up = nav_up_page.parent -%}
+{%- endfor -%}
 <nav aria-label="Main" id="site-nav" class="site-nav px-2 pt-2 pb-6 text-sm">
   {% assign pages_top_size = site.html_pages
         | where_exp:"item", "item.title != nil"

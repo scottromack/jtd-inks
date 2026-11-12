@@ -1,21 +1,19 @@
 {%- comment -%}
   Include as: {%- include components/breadcrumbs.html -%}
-  jtd-inks: built from front matter (parent, grand_parent), not by string-parsing the
+  jtd-inks: built from front matter (the parent chain, any depth), not by string-parsing the
   rendered nav as Just the Docs did. Assigns nav_breadcrumbs (ancestor links, outermost
   first), which components/children_nav.html reads.
 {%- endcomment -%}
 {%- assign nav_breadcrumbs = "" | split: "" -%}
 {%- if page.url != "/" and page.parent and page.title -%}
-  {%- if page.grand_parent -%}
-    {%- assign nav_gp = site.html_pages | where: "title", page.grand_parent | first -%}
-    {%- capture nav_breadcrumb_link -%}<a href="{{ nav_gp.url | relative_url }}" class="hover:underline">{{ page.grand_parent }}</a>{%- endcapture -%}
-    {%- assign nav_breadcrumbs = nav_breadcrumbs | push: nav_breadcrumb_link -%}
-    {%- assign nav_p = site.html_pages | where: "title", page.parent | where: "parent", page.grand_parent | first -%}
-  {%- else -%}
-    {%- assign nav_p = site.html_pages | where: "title", page.parent | first -%}
-  {%- endif -%}
-  {%- capture nav_breadcrumb_link -%}<a href="{{ nav_p.url | relative_url }}" class="hover:underline">{{ page.parent }}</a>{%- endcapture -%}
-  {%- assign nav_breadcrumbs = nav_breadcrumbs | push: nav_breadcrumb_link -%}
+  {%- assign nav_up = page.parent -%}
+  {%- for nav_step in (1..6) -%}
+    {%- if nav_up == nil -%}{%- break -%}{%- endif -%}
+    {%- assign nav_up_page = site.html_pages | where: "title", nav_up | first -%}
+    {%- capture nav_breadcrumb_link -%}<a href="{{ nav_up_page.url | relative_url }}" class="hover:underline">{{ nav_up }}</a>{%- endcapture -%}
+    {%- assign nav_breadcrumbs = nav_breadcrumbs | unshift: nav_breadcrumb_link -%}
+    {%- assign nav_up = nav_up_page.parent -%}
+  {%- endfor -%}
 <nav aria-label="Breadcrumb" class="breadcrumb-nav mb-6 text-sm">
   <ol class="flex flex-wrap items-center gap-1.5">
     {%- for nav_breadcrumb in nav_breadcrumbs %}

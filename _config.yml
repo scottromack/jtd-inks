@@ -23,10 +23,18 @@ permalink: pretty
 
 defaults:
   - scope:
-      path: "docs" # an empty string here means all files in the project
+      path: "" # all pages (GitHub Pages adds this implicitly; plain Jekyll does not)
       type: "pages"
     values:
       layout: "default"
+  - scope:
+      path: "atoms"
+    values:
+      layout: "pattern"
+  - scope:
+      path: "compositions"
+    values:
+      layout: "pattern"
 
 exclude:
   # from https://github.com/jekyll/jekyll/blob/master/lib/site_template/_config.yml:
@@ -51,6 +59,11 @@ exclude:
   - Rakefile
   - README.md
   - CODE_OF_CONDUCT.md
+  # jtd-inks: repo files, not site pages
+  - CHANGELOG.md
+  - MIGRATION.md
+  - AGENTS.md
+  - tools/
   - docker-compose.yml
   - Dockerfile
   # theme test code
@@ -146,7 +159,7 @@ liquid:
 back_to_top: true
 back_to_top_text: "Back to top"
 
-footer_content: 'Copyright &copy; 2017-2026 Patrick Marsceill and Just the Docs contributors. Distributed by an <a href="https://github.com/just-the-docs/just-the-docs/tree/main/LICENSE.txt">MIT license.</a> <a href="https://www.netlify.com/">This site is powered by Netlify.</a>'
+footer_content: 'Grace Commons pages: Apache 2.0. Theme: jtd-inks, from Just the Docs (MIT).'
 
 # Footer last edited timestamp
 last_edit_timestamp: true # show or hide edit time - page must have `last_modified_date` defined in the frontmatter
