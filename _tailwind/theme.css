@@ -88,10 +88,6 @@
   --tw-prose-td-borders: color-mix(in oklab, var(--color-neutral-500) 25%, transparent);
 }
 
-.prose-a\:decoration-1 :is(:where(a):not(:where([class~="not-prose"], [class~="not-prose"] *))) {
-  text-decoration-thickness: .1px;
-}
-
 /* reveal-on-scroll: the back-to-top button's one behavior, from grace-commons'
    footer_custom.html (Scott: "our existing back to top button ... is great"). Shown once the
    page has scrolled 200-400px, by a scroll-driven animation; browsers without one show it

@@ -48,8 +48,11 @@
     let startTime = 0;
 
     function setSize() {
-      W = Math.max(el.offsetWidth, MIN);
-      H = Math.max(el.offsetHeight, MIN);
+      // The canvas is fixed to the viewport, so its bitmap is the viewport's size, never the
+      // page's: a long page (a pattern runs to tens of thousands of px) made a bitmap past the
+      // browser's canvas limit, and nothing drew.
+      W = Math.max(window.innerWidth, MIN);
+      H = Math.max(window.innerHeight, MIN);
       canvas.width = W;
       canvas.height = H;
       // a page may fix the strength (og.html, a short frame the height rule would fade out)
@@ -163,6 +166,8 @@
     spawnWorker();
     el.addEventListener("dblclick", restart); // dblclick anywhere restarts the animation
     window.addEventListener("resize", () => {
+      // a resize that leaves the viewport the size it was (some browsers fire one on scroll) restarts nothing
+      if (Math.max(window.innerWidth, MIN) === W && Math.max(window.innerHeight, MIN) === H) return;
       setSize();
       spawnWorker();
     });

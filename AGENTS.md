@@ -29,7 +29,7 @@ keep what works, swap what doesn't. Read this before touching a class.
 - Borders and hovers are mid gray at low alpha, which read in light and dark alike:
   plain `border` (base color is neutral-500 at 25%), `hover:bg-neutral-500/20`; a glass
   surface is the `raised` utility (Compos' `.raised`).
-- Sidebar 14rem; nav `flex flex-col gap-0.5 px-2`; a link is
+- Sidebar 20rem, set in the grid (Scott, 2026-11-15: 14rem was too narrow); nav `flex flex-col gap-0.5 px-2`; a link is
   `flex items-center gap-2 rounded-lg p-2 text-sm hover:bg-neutral-500/20`.
 - Tables: a card `rounded-lg border overflow-hidden`; head row
   `border-b text-xs uppercase tracking-wide opacity-50`, cells `px-4 py-3 text-left font-medium`;
