@@ -14,6 +14,9 @@ keep what works, swap what doesn't. Read this before touching a class.
    Components carry no breakpoints; the shell rearranges, they don't.
    Components set no width either: they fill their grid area, as blocks
    do natively. The grid decides every width.
+   One exception, by Scott's word (2026-11-15): from `md:` a code block or a table
+   wider than the text column may grow past it, up to `calc(100vw - 26rem)` (the
+   viewport less the sidebar and the page padding); set once on `<main>`.
 3. Style light mode only. Never write `dark:`; INKs mirrors every color and
    the page follows the reader's system. A surface that must hold one
    scheme gets `scheme-light` or `scheme-dark`.
