@@ -19,6 +19,8 @@
   {%- assign nav_up_page = site.html_pages | where: "title", nav_up | first -%}
   {%- assign nav_up = nav_up_page.parent -%}
 {%- endfor -%}
+{%- comment -%} jtd-inks: one look for every nav link, site pages and external links alike. {%- endcomment -%}
+{%- assign nav_link_class = "rounded-lg border border-transparent p-2 transition hover:bg-neutral-500/20" -%}
 <nav aria-label="Main" id="site-nav" class="site-nav px-2 pt-2 pb-6 text-sm">
   {% assign pages_top_size = site.html_pages
         | where_exp:"item", "item.title != nil"
@@ -29,10 +31,10 @@
     {% include components/nav/pages.html pages=site.html_pages all=include.all %}
   {% endif %}
   {%- if site.nav_external_links -%}
-    <ul class="nav-list">
+    <ul class="nav-list mt-2 flex flex-col gap-0.5 border-t pt-2">
       {%- for node in site.nav_external_links -%}
         <li class="nav-list-item external">
-          <a href="{{ node.url | absolute_url }}" class="nav-list-link external"{% if node.hover %} title="{{ node.hover }}"{% endif %}
+          <a href="{{ node.url | absolute_url }}" class="nav-list-link external flex items-center gap-1 {{ nav_link_class }}"{% if node.hover %} title="{{ node.hover }}"{% endif %}
             {% if node.opens_in_new_tab or node.opens_in_new_tab == nil and site.nav_external_links_new_tab %}
               target="_blank" rel="noopener noreferrer"
             {% endif %}
