@@ -25,11 +25,11 @@ layout: table_wrappers
               [&_.site-logo~.site-title-text]:hidden md:[&_.site-logo~.site-title-text]:inline [&_.aux-nav]:hidden md:[&_.aux-nav]:grid">
     <div class="sticky top-0 z-50 h-26 md:col-span-2">{% include components/header.html %}</div>
     {% if page.nav_enabled == true %}
-      <div class="sticky top-26 z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto shadow-lg md:h-[calc(100dvh-6.5rem)] md:shadow-none">{% include components/sidebar.html %}</div>
+      <div class="sticky top-26 z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto shadow-lg md:h-[calc(100dvh-6.5rem)]">{% include components/sidebar.html %}</div>
     {% elsif layout.nav_enabled == true and page.nav_enabled == nil %}
-      <div class="sticky top-26 z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto shadow-lg md:h-[calc(100dvh-6.5rem)] md:shadow-none">{% include components/sidebar.html %}</div>
+      <div class="sticky top-26 z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto shadow-lg md:h-[calc(100dvh-6.5rem)]">{% include components/sidebar.html %}</div>
     {% elsif site.nav_enabled != false and layout.nav_enabled == nil and page.nav_enabled == nil %}
-      <div class="sticky top-26 z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto shadow-lg md:h-[calc(100dvh-6.5rem)] md:shadow-none">{% include components/sidebar.html %}</div>
+      <div class="sticky top-26 z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto shadow-lg md:h-[calc(100dvh-6.5rem)]">{% include components/sidebar.html %}</div>
     {% endif %}
     <div class="main flex min-w-0 flex-col" id="top">
       <div class="main-content-wrap flex flex-1 flex-col px-6 py-8 md:px-12 md:py-10">
