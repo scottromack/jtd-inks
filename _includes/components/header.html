@@ -5,7 +5,7 @@
   links, which the menu carries: [logo] [search] [menu]. Padding is the old sidebar header's, everywhere (Scott, 2026-11-12:
   "don't fear padding it is the key to design").
 {%- endcomment -%}
-<div id="main-header" class="main-header raised z-50 flex items-center gap-6 border-x-0! border-t-0! px-6 py-8">
+<div id="main-header" class="main-header raised z-50 flex items-center gap-6 border-x-0! border-t-0! h-full px-6">
   <a href="{{ '/' | relative_url }}" aria-label="{{ site.title }}" class="site-title flex shrink-0 items-center gap-3 text-xl opacity-80 transition hover:opacity-100">{% include title.html %}</a>
   {% if site.search_enabled != false %}
     {% include components/search_header.html %}
